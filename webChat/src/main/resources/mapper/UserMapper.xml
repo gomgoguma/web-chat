@@ -5,4 +5,25 @@
         SELECT *
         FROM tb_user
     </select>
+
+    <select id="getUser" parameterType="String" resultType="User">
+        SELECT *
+        FROM tb_user
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insertUser" parameterType="Map">
+        INSERT INTO tb_user
+        (
+         username
+        ,password
+        ,email
+        )
+        VALUES
+        (
+         #{username}
+        ,#{password}
+        ,#{email}
+        )
+    </insert>
 </mapper>

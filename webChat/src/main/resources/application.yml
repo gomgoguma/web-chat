@@ -19,3 +19,6 @@ mybatis:
 
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.webchat
+
+jwt:
+  secret: asdd!#241asdasD@^2345sdfaDA^@sdfas^@#$@#asfas13$@#$!asfhsdfsd@#$#@$*34ggb45@%%#
