@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ENC(3ViTD3QkAeU7R99lj6qidgkGoXDiwz745AS5b/woAt7HYJgI/PWoxRVIyX1RRjssRCz8rnA0FxT9fBShuia23Dwp9G1F1crSQUSXf7IrW9iXHx7cCxbizJT51bijocuvtN4Zcu1/kPo=)
+    username: ENC(EnBulQGDlvtvBGie6GxpU0bDhWuUPsla5pXFmuGd5FE=)
+    password: ENC(OBIzNE4tHVt7Xl7XYJzd6WRO5+K5CO/gXlFvUm5StLk=)
+
+jasypt:
+  encryptor:
+    bean: jasyptStringEncryptor
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.webchat
