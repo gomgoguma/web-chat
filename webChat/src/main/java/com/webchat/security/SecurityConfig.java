@@ -34,8 +34,8 @@ public class SecurityConfig {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .authorizeRequests()
-                .antMatchers("/api/user/*").permitAll()
-                .antMatchers("/api/test").hasRole("USER")
+                .antMatchers("/api/user/**").permitAll()
+                .antMatchers("/api/test**").hasAuthority("USER")
                 //.anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

@@ -26,4 +26,10 @@
         ,#{email}
         )
     </insert>
+
+    <update id="updateUser" parameterType="Map">
+        UPDATE tb_user
+        SET refresh_token = #{refreshToken}
+        WHERE username = #{username}
+    </update>
 </mapper>

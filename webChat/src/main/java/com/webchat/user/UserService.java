@@ -3,13 +3,13 @@ package com.webchat.user;
 import com.webchat.security.JwtToken;
 import com.webchat.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +33,10 @@ public class UserService {
         // 검증된 인증 정보로 JWT 토큰 생성
         JwtToken token = jwtTokenProvider.generateToken(authentication);
 
+        Map<String, String> updateMap = new HashMap<>();
+        updateMap.put("username", username);
+        updateMap.put("refreshToken", token.getRefreshToken());
+        userMapper.updateUser(updateMap);
         return token;
     }
 
