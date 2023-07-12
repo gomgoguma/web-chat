@@ -17,6 +17,7 @@ import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,6 +36,8 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
+        CustomUserDetails u = (CustomUserDetails) authentication.getPrincipal();
+
         //Access Token 생성
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
@@ -45,6 +48,7 @@ public class JwtTokenProvider {
 
         //Refresh Token 생성
         String refreshToken = Jwts.builder()
+                .claim("username", u.getUsername())
                 .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 60 * 36))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -73,20 +77,29 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
-    public boolean validateToken(String token) {
+    public String validateToken(Map<String, String> token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token.get("accessToken"));
+            return token.get("accessToken");
         }catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT Token", e);
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            try {
+                Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token.get("refreshToken"));
+                //to-do
+                //사용자-refresh토큰 검증
+                //accessToken 재발급
+                //새로 발급한 accessToken return
+            }
+            catch (Exception expired) {
+                log.info("Expired JWT Token", e);
+            }
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
         } catch (IllegalArgumentException e) {
             log.info("JWT claims string is empty.", e);
         }
-        return false;
+        return null;
     }
 
     private Claims parseClaims(String accessToken) {

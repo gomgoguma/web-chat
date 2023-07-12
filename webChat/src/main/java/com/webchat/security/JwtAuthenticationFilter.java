@@ -5,7 +5,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -15,6 +14,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
@@ -27,16 +28,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         RequestMatcher jwtSkipUri = new OrRequestMatcher(
-                new AntPathRequestMatcher("/api/user/login"),
-                new AntPathRequestMatcher("/api/user/join")
+            new AntPathRequestMatcher("/api/user/login"),
+            new AntPathRequestMatcher("/api/user/join")
         );
 
         if(!jwtSkipUri.matches((HttpServletRequest) request)) {
             // 토큰 유효성 검사
-            String token = resolveToken((HttpServletRequest) request);
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            Map<String, String> token = resolveToken((HttpServletRequest) request);
+            if (token != null) {
+                String accessToken = jwtTokenProvider.validateToken(token);
+                if(accessToken != null) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         }
 
@@ -44,21 +48,28 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     // 헤더에서 토큰 추출
-    private String resolveToken(HttpServletRequest request) {
+    private Map<String, String> resolveToken(HttpServletRequest request) {
         //String bearerToken = request.getHeader("Authorization");
-        String bearerToken = "";
+        //String bearerToken = "";
+
+        Map<String, String> token = new HashMap<>();
         Cookie[] cookies = request.getCookies();
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    bearerToken = "Bearer " + cookie.getValue();
+                if(token.size() >= 2)
                     break;
+
+                if ("accessToken".equals(cookie.getName())) {
+                    token.put("accessToken", cookie.getValue());
+                }
+                else if("refreshToken".equals(cookie.getName())) {
+                    token.put("refreshToken", cookie.getValue());
                 }
             }
         }
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
-            return bearerToken.substring(7);
-        }
+//        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
+//            return bearerToken.substring(7);
+//        }
         return null;
     }
 }
