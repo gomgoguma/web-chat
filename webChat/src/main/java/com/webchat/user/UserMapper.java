@@ -12,4 +12,5 @@ public interface UserMapper {
     List<Map<String, Object>> getUsers();
     User getUser(String username);
     void insertUser(Map<String, String> joinInfo);
+    User validationRefreshToken(String username, String refreshToken);
 }

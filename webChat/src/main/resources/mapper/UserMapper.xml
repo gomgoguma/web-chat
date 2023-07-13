@@ -32,4 +32,13 @@
         SET refresh_token = #{refreshToken}
         WHERE username = #{username}
     </update>
+
+    <select id="validationRefreshToken" resultType="User">
+        SELECT username
+             , email
+             , role
+        FROM tb_user
+        WHERE username = #{param1}
+         AND refresh_token = #{param2}
+    </select>
 </mapper>

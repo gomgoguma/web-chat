@@ -17,11 +17,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ExceptionHandlerFilter exceptionHandlerFilter;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, ExceptionHandlerFilter exceptionHandlerFilter) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.exceptionHandlerFilter = exceptionHandlerFilter;
     }
-
 
     @Bean
     public BCryptPasswordEncoder encoder() {
@@ -42,9 +43,10 @@ public class SecurityConfig {
                 .antMatchers("/api/user/login", "/api/user/join").permitAll()
                 .antMatchers("/api/user**", "/api/user/").hasAuthority("USER")
                 .antMatchers("/api/test**").hasAuthority("USER")
-                //.anyRequest().authenticated()
+                .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 
