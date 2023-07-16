@@ -1,4 +1,4 @@
-package com.webchat.security;
+package com.webchat.config.security;
 
 import com.webchat.user.UserMapper;
 import com.webchat.user.object.User;

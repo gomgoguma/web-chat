@@ -1,6 +1,7 @@
-package com.webchat.security;
+package com.webchat.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webchat.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

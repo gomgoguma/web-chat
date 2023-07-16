@@ -1,7 +1,7 @@
 package com.webchat.user;
 
-import com.webchat.security.JwtToken;
-import com.webchat.security.JwtTokenProvider;
+import com.webchat.config.jwt.JwtToken;
+import com.webchat.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

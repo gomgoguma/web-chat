@@ -1,5 +1,6 @@
-package com.webchat.security;
+package com.webchat.config.jwt;
 
+import com.webchat.config.security.CustomUserDetails;
 import com.webchat.user.UserMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

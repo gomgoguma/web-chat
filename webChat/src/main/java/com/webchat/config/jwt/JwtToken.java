@@ -1,4 +1,4 @@
-package com.webchat.security;
+package com.webchat.config.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

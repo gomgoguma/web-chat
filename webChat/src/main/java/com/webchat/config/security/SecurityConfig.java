@@ -1,5 +1,7 @@
-package com.webchat.security;
+package com.webchat.config.security;
 
+import com.webchat.config.jwt.JwtAuthenticationFilter;
+import com.webchat.config.jwt.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

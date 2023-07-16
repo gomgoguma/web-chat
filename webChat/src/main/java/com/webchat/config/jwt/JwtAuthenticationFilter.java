@@ -1,4 +1,4 @@
-package com.webchat.security;
+package com.webchat.config.jwt;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
