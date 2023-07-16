@@ -15,8 +15,8 @@ kafka
 kafka-server 실행 명령어
 > .\kafka-server-start.bat ..\..\config\server.properties
 
-kafka topic 생성
-> ./kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic [토픽 이름]
+kafka topic 생성 (단일 복제본, 단일 파티션)
+> .\kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic [토픽 이름]
 
 kafka topic 조회
-> ./kafka-topics --list --bootstrap-server localhost:9092
+> .\kafka-topics --list --bootstrap-server localhost:9092
