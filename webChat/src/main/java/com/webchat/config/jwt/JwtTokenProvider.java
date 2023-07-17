@@ -1,6 +1,7 @@
 package com.webchat.config.jwt;
 
 import com.webchat.config.security.CustomUserDetails;
+import com.webchat.config.security.CustomUserDetailsService;
 import com.webchat.user.UserMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -11,7 +12,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -31,11 +31,13 @@ public class JwtTokenProvider {
 
     private final Key key;
     private final UserMapper userMapper;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, UserMapper userMapper) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, UserMapper userMapper, CustomUserDetailsService customUserDetailsService) {
         this.userMapper = userMapper;
         byte[] secretByteKey = DatatypeConverter.parseBase64Binary(secretKey);
         this.key = Keys.hmacShaKeyFor(secretByteKey);
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     public JwtToken generateToken(Authentication authentication) {
@@ -79,8 +81,8 @@ public class JwtTokenProvider {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        UserDetails principal = customUserDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(principal, "",  authorities);
     }
 
     public String validateToken(Map<String, String> token, HttpServletResponse response) {
@@ -131,7 +133,7 @@ public class JwtTokenProvider {
             throw new TokenException("지원되지 않는 토큰입니다.");
         } catch (IllegalArgumentException e) {
             log.info("JWT claims string is empty.", e);
-            throw new TokenException("잘못된 토큰입니다.");
+            throw new TokenException("토큰이 없습니다.");
         }
     }
 

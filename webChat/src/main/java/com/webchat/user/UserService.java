@@ -2,12 +2,14 @@ package com.webchat.user;
 
 import com.webchat.config.jwt.JwtToken;
 import com.webchat.config.jwt.JwtTokenProvider;
+import com.webchat.config.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -68,5 +70,13 @@ public class UserService {
     public void join(Map<String, String> joinInfo) {
         joinInfo.put("password", encoder.encode(joinInfo.get("password")));
         userMapper.insertUser(joinInfo);
+    }
+
+    public ResponseEntity<?> check(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("username", customUserDetails.getUser().getUsername());
+        userInfo.put("role", customUserDetails.getUser().getRole());
+        userInfo.put("email", customUserDetails.getUser().getEmail());
+        return new ResponseEntity<>(userInfo, HttpStatus.OK);
     }
 }

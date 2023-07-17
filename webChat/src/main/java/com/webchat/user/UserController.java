@@ -1,7 +1,9 @@
 package com.webchat.user;
 
+import com.webchat.config.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -30,4 +32,8 @@ public class UserController {
         return userService.login(loginInfo.get("username"), loginInfo.get("password"), response);
     }
 
+    @PostMapping("/check")
+    public ResponseEntity<?> check(@AuthenticationPrincipal CustomUserDetails user) {
+        return userService.check(user);
+    }
 }
