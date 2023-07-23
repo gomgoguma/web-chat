@@ -20,3 +20,9 @@ kafka topic 생성 (단일 복제본, 단일 파티션)
 
 kafka topic 조회
 > .\kafka-topics --list --bootstrap-server localhost:9092
+
+kafka topic에 저장된 메시지 확인
+> .\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic [토픽 이름] --from-beginning
+```
+--from-beginning : 처음부터 읽기 (생략하면 현재부터. )
+```
