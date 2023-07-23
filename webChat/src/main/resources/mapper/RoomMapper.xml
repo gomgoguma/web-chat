@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webchat.room.RoomMapper">
+
+    <select id="insertRoom" parameterType="int" resultType="int">
+        INSERT INTO tb_room
+        (
+            create_dtm
+          , host_id
+        )
+        VALUES
+        (
+            CURRENT_TIMESTAMP
+          , #{userId}
+        )
+        RETURNING id
+    </select>
+
+    <insert id="insertRoomUser">
+        INSERT INTO tb_room_user
+        (
+            user_id
+          , room_id
+          , join_dtm
+        )
+        VALUES
+        <foreach collection="userIdList" item="item" separator="," >
+        (
+            #{item}
+          , #{roomId}
+          , CURRENT_TIMESTAMP
+        )
+        </foreach>
+    </insert>
+</mapper>
