@@ -15,6 +15,20 @@ kafka
 kafka-server 실행 명령어
 > .\kafka-server-start.bat ..\..\config\server.properties
 
+zookeeper, kafka bat파일 만들어서 실행하기
+```
+@echo off
+cd [zookeeper path]
+.\zookeeper-server-start.bat ..\..\config\zookeeper.properties
+
+@echo off
+cd [kafka path]
+.\kafka-server-start.bat ..\..\config\server.properties
+```
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+
 kafka topic 생성 (단일 복제본, 단일 파티션)
 > .\kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic [토픽 이름]
 
