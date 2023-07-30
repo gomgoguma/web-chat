@@ -4,6 +4,11 @@
     <select id="getUsers" resultType="Map">
         SELECT *
         FROM tb_user
+        <where>
+            <if test='excludeOwnYn != null and excludeOwnYn == "Y"'>
+                AND id != #{userId}
+            </if>
+        </where>
     </select>
 
     <select id="getUser" parameterType="String" resultType="User">

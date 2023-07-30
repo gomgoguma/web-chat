@@ -7,7 +7,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,8 +17,8 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("")
-    public List<Map<String, Object>> getUsers() {
-        return userService.getUsers();
+    public ResponseEntity<?> getUsers(@RequestParam(name = "excludeOwnYn", required = false) String excludeOwnYn, @AuthenticationPrincipal CustomUserDetails user) {
+        return userService.getUsers(excludeOwnYn, user);
     }
 
     @PostMapping("")

@@ -1,14 +1,11 @@
 package com.webchat.room;
 
 import com.webchat.config.security.CustomUserDetails;
-import com.webchat.room.object.CreateRoomObject;
+import com.webchat.room.object.RoomCreateObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,7 +15,12 @@ public class RoomController {
     private final RoomService roomService;
 
     @PostMapping("")
-    public ResponseEntity<?> createRoom(@RequestBody CreateRoomObject createRoomObject, @AuthenticationPrincipal CustomUserDetails user) {
-        return roomService.createRoom(createRoomObject, user);
+    public ResponseEntity<?> createRoom(@RequestBody RoomCreateObject roomCreateObject, @AuthenticationPrincipal CustomUserDetails user) {
+        return roomService.createRoom(roomCreateObject, user);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getRooms(@AuthenticationPrincipal CustomUserDetails user) {
+        return roomService.getRooms(user);
     }
 }

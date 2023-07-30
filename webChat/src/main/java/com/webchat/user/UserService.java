@@ -3,6 +3,8 @@ package com.webchat.user;
 import com.webchat.config.jwt.JwtToken;
 import com.webchat.config.jwt.JwtTokenProvider;
 import com.webchat.config.security.CustomUserDetails;
+import com.webchat.user.object.User;
+import com.webchat.user.object.UserSearchObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,16 @@ public class UserService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public List<Map<String, Object>> getUsers() { return userMapper.getUsers(); }
+    public ResponseEntity<?> getUsers(String excludeOwnYn, CustomUserDetails user) {
+        User userInfo = user.getUser();
+        UserSearchObject userSearchObject = new UserSearchObject();
+        userSearchObject.setExcludeOwnYn(excludeOwnYn);
+        if(userInfo != null)
+            userSearchObject.setUserId(userInfo.getId());
+
+        List<Map<String, Object>> userList = userMapper.getUsers(userSearchObject);
+        return new ResponseEntity<>(userList, HttpStatus.OK);
+    }
 
     public ResponseEntity<?> login(String username, String password, HttpServletResponse response) {
         // Authentication 객체 생성
