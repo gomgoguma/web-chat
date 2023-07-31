@@ -88,6 +88,8 @@ public class UserService {
         userInfo.put("username", customUserDetails.getUser().getUsername());
         userInfo.put("role", customUserDetails.getUser().getRole());
         userInfo.put("email", customUserDetails.getUser().getEmail());
+        userInfo.put("name", customUserDetails.getUser().getName());
+        userInfo.put("userId", customUserDetails.getUser().getId());
         return new ResponseEntity<>(userInfo, HttpStatus.OK);
     }
 }

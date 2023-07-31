@@ -1,40 +1,46 @@
 package com.webchat.chat;
 
 import com.webchat.config.kafka.KafkaConstant;
-import com.webchat.config.kafka.Message;
+import com.webchat.msg.object.Msg;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin
 @RestController
-@RequestMapping(value = "/kafka")
+@RequestMapping(value = "/api/chat")
 public class ChatController {
 
-    private final KafkaTemplate<String, Message> kafkaTemplate;
+    private final KafkaTemplate<String, Msg> kafkaTemplate;
+    private final ChatService chatService;
 
-    @PostMapping(value = "/publish")
-    public void sendMessage(@RequestBody Message message) {
-        log.info("Produce message : " + message.toString());
-        message.setTimestamp(LocalDateTime.now().toString());
-        try {
-            kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC, message).get();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    @PostMapping(value = "/send")
+    public ResponseEntity<?> sendMessage(@RequestBody Msg msg) {
+        if (chatService.sendMessage(msg)) {
+            log.info("Produce message : " + msg.toString());
+            try {
+                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_PREFIX + msg.getRoomId(), msg).get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @MessageMapping("/sendMessage")
     @SendTo("/topic/group")
-    public Message broadcastGroupMessage(@Payload Message message) {
-        return message;
+    public Msg broadcastGroupMessage(@Payload Msg msg) {
+        return msg;
     }
 }

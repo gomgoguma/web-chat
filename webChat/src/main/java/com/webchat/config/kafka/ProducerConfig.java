@@ -1,5 +1,6 @@
 package com.webchat.config.kafka;
 
+import com.webchat.msg.object.Msg;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class ProducerConfig {
 
     @Bean
-    public ProducerFactory<String, Message> producerFactory() {
+    public ProducerFactory<String, Msg> producerFactory() {
         return new DefaultKafkaProducerFactory<>(ProducerConfig());
     }
 
@@ -31,7 +32,7 @@ public class ProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Message> kafkaTemplate() {
+    public KafkaTemplate<String, Msg> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
     

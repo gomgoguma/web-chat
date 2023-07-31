@@ -1,5 +1,6 @@
 package com.webchat.config.kafka;
 
+import com.webchat.msg.object.Msg;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -18,15 +19,15 @@ import java.util.Map;
 public class ListenerConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, Message> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Message> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    ConcurrentKafkaListenerContainerFactory<String, Msg> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Msg> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 
     @Bean
-    public ConsumerFactory<String, Message> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(), new JsonDeserializer<>(Message.class));
+    public ConsumerFactory<String, Msg> consumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(), new JsonDeserializer<>(Msg.class));
     }
 
     @Bean

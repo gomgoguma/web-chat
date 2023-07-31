@@ -1,5 +1,6 @@
 package com.webchat.config.kafka;
 
+import com.webchat.msg.object.Msg;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,11 +15,11 @@ public class MessageListener {
     private final SimpMessagingTemplate template;
 
     @KafkaListener(
-            topics = KafkaConstant.KAFKA_TOPIC,
+            topicPattern = "^" + KafkaConstant.KAFKA_TOPIC_PREFIX + "[0-9]+",
             groupId = KafkaConstant.GROUP_ID
     )
-    public void listen(Message message) {
+    public void listen(Msg msg) {
         log.info("sending via kafka listener..");
-        template.convertAndSend("/topic/group", message);
+        template.convertAndSend("/topic/group/"+msg.getRoomId(), msg);
     }
 }

@@ -1,5 +1,6 @@
 package com.webchat.room;
 
+import com.webchat.config.kafka.KafkaConstant;
 import com.webchat.config.kafka.KafkaUtil;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.room.object.RoomCreateObject;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -35,7 +37,7 @@ public class RoomService {
                     log.warn("Topic " + "room"+roomId + " created successfully.");
                 } catch (ExecutionException | InterruptedException e) {
                     log.warn("Error creating topic: " + e.getMessage());
-                        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         }
@@ -47,6 +49,11 @@ public class RoomService {
         List<Map<String, Object>> roomList = null;
         if(userInfo != null) {
             roomList = roomMapper.getRooms(userInfo.getId());
+        }
+
+        if(roomList != null) {
+            List<Integer> roomIds = roomList.stream().map(item -> Integer.parseInt(item.get("id").toString())).collect(Collectors.toList());
+            KafkaUtil.initTopics(KafkaConstant.KAFKA_BROKER, roomIds);
         }
         return new ResponseEntity<>(roomList, HttpStatus.OK);
     }
