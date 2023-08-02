@@ -15,7 +15,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
@@ -110,14 +109,7 @@ public class JwtTokenProvider {
                             .signWith(key, SignatureAlgorithm.HS256)
                             .compact();
 
-                    Cookie cookie = new Cookie("accessToken", accessToken);
-                    cookie.setDomain("localhost");
-                    cookie.setHttpOnly(true);
-                    cookie.setSecure(true);
-                    cookie.setPath("/");
-                    cookie.setMaxAge(60 * 60 * 24);
-                    response.addCookie(cookie);
-
+                    response.addCookie(JwtUtil.createCookie("accessToken", accessToken, "localhost", 60 * 60 * 24));
                     return accessToken;
                 }
                 else{

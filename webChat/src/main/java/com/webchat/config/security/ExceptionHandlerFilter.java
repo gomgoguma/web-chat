@@ -2,6 +2,8 @@ package com.webchat.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webchat.config.jwt.JwtTokenProvider;
+import com.webchat.config.response.ResponseConstant;
+import com.webchat.config.response.ResponseObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -12,8 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } catch (JwtTokenProvider.TokenException e) {
-            setErrorResponse(HttpStatus.UNAUTHORIZED, response, e);
+            setErrorResponse(HttpStatus.OK, response, e);
         }
     }
 
@@ -36,10 +36,10 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
         response.setStatus(status.value());
         response.setContentType("application/json; charset=UTF-8");
 
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("err", e.getMessage());
-
-        String json = objectMapper.writeValueAsString(errorResponse);
+        ResponseObject responseObject = new ResponseObject();
+        responseObject.setResMsg(e.getMessage());
+        responseObject.setResCd(ResponseConstant.UNAUTHORIZED);
+        String json = objectMapper.writeValueAsString(responseObject);
         response.getWriter().write(json);
     }
 }

@@ -33,11 +33,17 @@
         </foreach>
     </insert>
 
-    <select id="getRooms" parameterType="int" resultType="Map">
+    <select id="getRooms" parameterType="int" resultType="com.webchat.room.object.RoomSearchResultObject">
         SELECT tr.*
-        FROM tb_room_user tru
-        JOIN tb_room tr ON tr.id = tru.room_id
-        WHERE user_id = #{id}
-        GROUP BY tr.id
+             , (
+                    SELECT STRING_AGG(u.name, ', ')
+                    FROM tb_room_user ru
+                    JOIN tb_user u ON u.id = ru.user_id
+                    WHERE ru.room_id = tr.id
+                      AND ru.user_id != tr.host_id
+                ) room_name
+        FROM tb_room tr
+        JOIN tb_room_user tru ON tr.id = tru.room_id
+        WHERE tru.user_id = #{id}
     </select>
 </mapper>
