@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,6 +25,7 @@ public class MsgService {
         Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
         List<Msg> msgList = msgRespository.findByRoomId(roomId, pageable);
 
+        Collections.sort(msgList, Comparator.comparing(Msg::getDtm));
         ResponseObject responseObject = new ResponseObject();
         responseObject.setData(msgList);
         responseObject.setResCd(msgList.isEmpty() ? ResponseConstant.NOT_FOUND : ResponseConstant.OK);
