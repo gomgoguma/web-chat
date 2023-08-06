@@ -13,9 +13,12 @@
     </select>
 
     <select id="getUser" parameterType="String" resultType="User">
-        SELECT *
-        FROM tb_user
-        WHERE username = #{username}
+        SELECT tu.*
+             , string_agg(tru.id::text, ',') room_list
+        FROM tb_user tu
+        LEFT JOIN  tb_room_user tru ON tru.user_id = tu.id
+        WHERE tu.username = #{username}
+        group by tu.id;
     </select>
 
     <insert id="insertUser" parameterType="Map">

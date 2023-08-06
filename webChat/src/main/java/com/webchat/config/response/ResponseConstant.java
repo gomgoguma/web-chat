@@ -6,4 +6,5 @@ public class ResponseConstant {
     public static final Integer UNAUTHORIZED = 401;
     public static final Integer INTERNAL_SERVER_ERROR = 500;
     public static final Integer NOT_FOUND = 404;
+    public static final Integer FORBIDDEN = 403;
 }
