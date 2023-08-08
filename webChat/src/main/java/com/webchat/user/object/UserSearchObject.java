@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserSearchObject {
-
     private String excludeOwnYn;
     private Integer userId;
+    private String name;
 }

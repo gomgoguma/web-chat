@@ -9,6 +9,9 @@
             <if test='excludeOwnYn != null and excludeOwnYn == "Y"'>
                 AND id != #{userId}
             </if>
+            <if test="name != null">
+                AND name like  '%' || #{name} || '%'
+            </if>
         </where>
     </select>
 

@@ -30,10 +30,8 @@ public class UserService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public ResponseObject<?> getUsers(String excludeOwnYn, CustomUserDetails user) {
+    public ResponseObject<?> getUsers(UserSearchObject userSearchObject, CustomUserDetails user) {
         User userInfo = user.getUser();
-        UserSearchObject userSearchObject = new UserSearchObject();
-        userSearchObject.setExcludeOwnYn(excludeOwnYn);
         if(userInfo != null)
             userSearchObject.setUserId(userInfo.getId());
 

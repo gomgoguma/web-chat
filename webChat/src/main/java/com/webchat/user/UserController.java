@@ -3,6 +3,8 @@ package com.webchat.user;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.user.object.UserLoginObject;
+import com.webchat.user.object.UserSearchObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +21,15 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("")
-    public ResponseObject<?> getUsers(@RequestParam(name = "excludeOwnYn", required = false) String excludeOwnYn, @AuthenticationPrincipal CustomUserDetails user) {
-        return userService.getUsers(excludeOwnYn, user);
+    public ResponseObject<?> getUsers(@RequestParam(name = "excludeOwnYn", required = false) String excludeOwnYn
+                                    , @RequestParam(name = "name", required = false) String name
+                                    , @AuthenticationPrincipal CustomUserDetails user) {
+        UserSearchObject userSearchObject = new UserSearchObject();
+        if(StringUtils.isNotBlank(excludeOwnYn))
+            userSearchObject.setExcludeOwnYn(excludeOwnYn);
+        if(StringUtils.isNotBlank(name))
+            userSearchObject.setName(name);
+        return userService.getUsers(userSearchObject, user);
     }
 
     @PostMapping("")
