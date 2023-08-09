@@ -35,8 +35,13 @@ kafka topic 생성 (단일 복제본, 단일 파티션)
 kafka topic 조회
 > .\kafka-topics --list --bootstrap-server localhost:9092
 
-kafka topic에 저장된 메시지 확인
-> .\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic [토픽 이름] --from-beginning
+kafka topic 메시지 확인
+> .\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic [토픽 이름] --from-beginning --partition [partition number] 
 ```
 --from-beginning : 처음부터 읽기 (생략하면 현재부터. )
+--partition 2 : 2번 파티션만 읽기
 ```
+
+kafka 컨슈머 그룹 조회 (특정 그룹, 특정 토픽)
+> ./kafka-consumer-groups.bat --bootstrap-server localhost:9092 --group [group id] --describe | findstr /C:[topic이름]
+
