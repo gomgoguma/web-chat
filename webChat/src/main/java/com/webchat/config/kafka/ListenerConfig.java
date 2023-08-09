@@ -22,6 +22,7 @@ public class ListenerConfig {
     ConcurrentKafkaListenerContainerFactory<String, Msg> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Msg> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(3);
         return factory;
     }
 
@@ -39,6 +40,7 @@ public class ListenerConfig {
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class); // 역직렬화
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");    // earliest : 가장 이른 오프셋부터 모든 메시지를 읽는다.
                                                                             // latest : 가장 최근 오프셋부터 새로운 메시지를 읽는다.
+        config.put(ConsumerConfig.CLIENT_ID_CONFIG, "spring-consumer-1");
         return config;
     }
 
