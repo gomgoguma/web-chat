@@ -2,8 +2,8 @@ package com.webchat.room;
 
 import com.webchat.config.kafka.KafkaConstant;
 import com.webchat.config.kafka.KafkaUtil;
-import com.webchat.config.response.ResponseObject;
 import com.webchat.config.response.ResponseConstant;
+import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.room.object.RoomCreateObject;
 import com.webchat.room.object.RoomSearchResultObject;
@@ -35,7 +35,7 @@ public class RoomService {
             int count = roomMapper.insertRoomUser(roomId, userIdList);
             if(count > 0) {
                 try {
-                    KafkaUtil.createTopic("localhost:9092", "room"+roomId, 3, (short) 1);
+                    KafkaUtil.createTopic("localhost:9092", "room"+roomId, 3, (short) 0);
                     log.warn("Topic " + "room"+roomId + " created successfully.");
                 } catch (ExecutionException | InterruptedException e) {
                     log.warn("Error creating topic: " + e.getMessage());
@@ -65,6 +65,24 @@ public class RoomService {
         }
 
         responseObject.setData(roomList);
+        responseObject.setResCd(ResponseConstant.OK);
+        return responseObject;
+    }
+
+    @Transactional
+    public ResponseObject<?> deleteRoom(Integer roomId) {
+        ResponseObject responseObject = new ResponseObject();
+
+        if( roomMapper.deleteRoomUser(roomId) > 0
+                && roomMapper.deleteRoom(roomId) > 0) {
+            // windows에서 topic 삭제 이슈 있음
+            if(!KafkaUtil.deleteTopic(KafkaConstant.KAFKA_BROKER,"room"+roomId)) {
+                throw new RuntimeException("토픽 삭제 실패");
+            }
+        }
+        else {
+            responseObject.setResCd(ResponseConstant.NOT_FOUND);
+        }
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
     }

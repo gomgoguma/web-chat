@@ -12,4 +12,7 @@ public interface RoomMapper {
     int insertRoomUser(@Param("roomId") Integer roomId, @Param("userIdList") List<Integer> userIdList);
 
     List<RoomSearchResultObject> getRooms(Integer id);
+
+    int deleteRoomUser(Integer roomId);
+    int deleteRoom(Integer roomId);
 }

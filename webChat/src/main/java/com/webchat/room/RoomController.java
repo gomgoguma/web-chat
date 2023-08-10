@@ -25,4 +25,9 @@ public class RoomController {
     public ResponseObject<?> getRooms(@AuthenticationPrincipal CustomUserDetails user) {
         return roomService.getRooms(user);
     }
+
+    @DeleteMapping("")
+    public  ResponseObject<?> deleteRoom(@RequestParam (name = "roomId") Integer roomId) {
+        return roomService.deleteRoom(roomId);
+    }
 }

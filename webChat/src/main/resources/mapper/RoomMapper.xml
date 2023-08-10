@@ -46,4 +46,15 @@
         JOIN tb_room_user tru ON tr.id = tru.room_id
         WHERE tru.user_id = #{id}
     </select>
+
+    <delete id="deleteRoomUser" parameterType="int">
+        DELETE FROM tb_room_user
+        WHERE room_id = #{id}
+    </delete>
+
+    <delete id="deleteRoom" parameterType="int">
+        DELETE FROM tb_room
+        WHERE id = #{id}
+    </delete>
+
 </mapper>
