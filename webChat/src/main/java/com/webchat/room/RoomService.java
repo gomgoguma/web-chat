@@ -35,7 +35,7 @@ public class RoomService {
             int count = roomMapper.insertRoomUser(roomId, userIdList);
             if(count > 0) {
                 try {
-                    KafkaUtil.createTopic("localhost:9092", "room"+roomId, 3, (short) 0);
+                    KafkaUtil.createTopic(KafkaConstant.KAFKA_BROKER, "room"+roomId, 3, (short) 1);
                     log.warn("Topic " + "room"+roomId + " created successfully.");
                 } catch (ExecutionException | InterruptedException e) {
                     log.warn("Error creating topic: " + e.getMessage());
