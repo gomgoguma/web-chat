@@ -29,10 +29,9 @@ public class ChatService {
 
         User user = principal.getUser();
         if(user != null || user.getRoomList() != null || Arrays.asList(user.getRoomList().split(",")).contains(msg.getRoomId().toString()) ) {
-            msgRespository.save(msg);
-
-            log.info("Produce message : " + msg);
             try {
+                msgRespository.save(msg);
+                log.info("Produce message : " + msg);
                 kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_PREFIX + msg.getRoomId(), msg).get();
             } catch (Exception e) {
                 throw new RuntimeException(e);

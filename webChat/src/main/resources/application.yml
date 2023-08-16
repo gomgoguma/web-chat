@@ -13,6 +13,9 @@ spring:
       host: localhost
       port: 27017
       database: web-chat
+      log:
+        query:
+          enabled: true
 
 jasypt:
   encryptor:
@@ -28,3 +31,7 @@ mybatis:
 
 jwt:
   secret: asdd!#241asdasD@^2345sdfaDA^@sdfas^@#$@#asfas13$@#$!asfhsdfsd@#$#@$*34ggb45@%%#
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG

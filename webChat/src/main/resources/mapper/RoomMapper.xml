@@ -45,6 +45,7 @@
         FROM tb_room tr
         JOIN tb_room_user tru ON tr.id = tru.room_id
         WHERE tru.user_id = #{id}
+        ORDER BY id
     </select>
 
     <delete id="deleteRoomUser" parameterType="int">

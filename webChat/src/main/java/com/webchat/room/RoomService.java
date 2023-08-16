@@ -5,11 +5,17 @@ import com.webchat.config.kafka.KafkaUtil;
 import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
+import com.webchat.msg.object.Msg;
 import com.webchat.room.object.RoomCreateObject;
 import com.webchat.room.object.RoomSearchResultObject;
 import com.webchat.user.object.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +29,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomMapper roomMapper;
+    private final MongoTemplate mongoTemplate;
 
     @Transactional
     public ResponseObject<?> createRoom(RoomCreateObject roomCreateObject, CustomUserDetails user) {
@@ -61,12 +68,43 @@ public class RoomService {
 
         if(roomList != null) {
             List<Integer> roomIds = roomList.stream().map(RoomSearchResultObject::getId).collect(Collectors.toList());
+            List<Msg> recentMsgList = getRecentMsgForRooms(roomIds);
+
+            if(!recentMsgList.isEmpty()) {
+                int count=0;
+                for(Msg msg : recentMsgList) {
+                    for(int i=count ; i < roomList.size() && count < recentMsgList.size() ; i++) {
+                        if(roomList.get(i).getId().equals(msg.getRoomId())) {
+                            roomList.get(i).setRecentMsg(msg.getMsg());
+                            count++;
+                            break;
+                        }
+                    }
+                }
+            }
+
             KafkaUtil.initTopics(KafkaConstant.KAFKA_BROKER, roomIds);
         }
 
         responseObject.setData(roomList);
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
+    }
+
+    public List<Msg> getRecentMsgForRooms(List<Integer> roomIds) {
+        Aggregation aggregation = Aggregation.newAggregation(
+            Aggregation.match(Criteria.where("roomId").in(roomIds)),
+            Aggregation.sort(Sort.Direction.DESC, "dtm"),
+            Aggregation.group("roomId").first("msg").as("msg"), // roomId를 기준으로 그룹핑하고 그 key(roomId)가 _id로 변환됨
+            Aggregation.project("msg", "_id").and("_id").as("roomId").andExclude("_id"), // 필드 선택, AS, 제외
+            Aggregation.sort(Sort.Direction.ASC, "roomId")
+        );
+
+        AggregationResults<Msg> results = mongoTemplate.aggregate(
+            aggregation, "msg", Msg.class
+        );
+
+        return results.getMappedResults();
     }
 
     @Transactional
