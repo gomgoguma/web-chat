@@ -76,6 +76,7 @@ public class RoomService {
                     for(int i=count ; i < roomList.size() && count < recentMsgList.size() ; i++) {
                         if(roomList.get(i).getId().equals(msg.getRoomId())) {
                             roomList.get(i).setRecentMsg(msg.getMsg());
+                            roomList.get(i).setRecentMsgDtm(msg.getDtm());
                             count++;
                             break;
                         }
@@ -95,8 +96,10 @@ public class RoomService {
         Aggregation aggregation = Aggregation.newAggregation(
             Aggregation.match(Criteria.where("roomId").in(roomIds)),
             Aggregation.sort(Sort.Direction.DESC, "dtm"),
-            Aggregation.group("roomId").first("msg").as("msg"), // roomId를 기준으로 그룹핑하고 그 key(roomId)가 _id로 변환됨
-            Aggregation.project("msg", "_id").and("_id").as("roomId").andExclude("_id"), // 필드 선택, AS, 제외
+            Aggregation.group("roomId")
+                    .first("msg").as("msg")
+                    .first("dtm").as("dtm"), // roomId를 기준으로 그룹핑하고 그 key(roomId)가 _id로 변환됨
+            Aggregation.project("msg","dtm","_id").and("_id").as("roomId").andExclude("_id"), // 필드 선택, AS, 제외
             Aggregation.sort(Sort.Direction.ASC, "roomId")
         );
 

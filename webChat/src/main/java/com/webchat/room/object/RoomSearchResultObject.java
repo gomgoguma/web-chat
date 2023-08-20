@@ -11,4 +11,5 @@ public class RoomSearchResultObject {
     private String hostId;
     private String createDtm;
     private String recentMsg;
+    private String recentMsgDtm;
 }
