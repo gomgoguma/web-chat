@@ -6,6 +6,7 @@ import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.msg.object.Msg;
+import com.webchat.room.object.Room;
 import com.webchat.room.object.RoomCreateObject;
 import com.webchat.room.object.RoomSearchResultObject;
 import com.webchat.user.object.User;
@@ -16,11 +17,11 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -32,6 +33,9 @@ public class RoomService {
 
     private final RoomMapper roomMapper;
     private final MongoTemplate mongoTemplate;
+    private final SimpMessagingTemplate template;
+
+    private final KafkaTemplate<Object, Room> kafkaTemplate;
 
     @Transactional
     public ResponseObject<?> createRoom(RoomCreateObject roomCreateObject, CustomUserDetails user) {
@@ -52,6 +56,20 @@ public class RoomService {
                     responseObject.setResMsg("채팅방 생성에 실패하였습니다.");
                     return responseObject;
                 }
+            }
+
+            Room room = new Room();
+            room.setId(roomId);
+            room.setRoomName("123");
+            room.setUserIds(userIdList.stream().filter(item -> !item.equals(user.getUser().getId())).collect(Collectors.toList()));
+
+            try{
+                if (KafkaUtil.checkTopicExist(KafkaConstant.KAFKA_BROKER, "KafkaConstant.KAFKA_TOPIC_PREFIX + roomId")) {
+                    KafkaUtil.createTopic(KafkaConstant.KAFKA_BROKER, KafkaConstant.KAFKA_TOPIC_PREFIX + roomId, 3, (short) 1);
+                    kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_PREFIX + roomId,  room).get();
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
 
