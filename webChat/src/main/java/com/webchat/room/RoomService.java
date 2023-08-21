@@ -19,6 +19,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -57,8 +59,8 @@ public class RoomService {
         return responseObject;
     }
 
-    public ResponseObject<?> getRooms(CustomUserDetails user) {
-        ResponseObject responseObject = new ResponseObject();
+    public ResponseObject<List<RoomSearchResultObject>> getRooms(CustomUserDetails user) {
+        ResponseObject<List<RoomSearchResultObject>> responseObject = new ResponseObject<>();
 
         User userInfo = user.getUser();
         List<RoomSearchResultObject> roomList = null;
@@ -82,6 +84,7 @@ public class RoomService {
                         }
                     }
                 }
+                roomList.sort((room1, room2) -> room2.getRecentMsgDtm().compareTo(room1.getRecentMsgDtm()));
             }
 
             KafkaUtil.initTopics(KafkaConstant.KAFKA_BROKER, roomIds);
