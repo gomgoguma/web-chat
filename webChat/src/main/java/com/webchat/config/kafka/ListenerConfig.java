@@ -1,7 +1,6 @@
 package com.webchat.config.kafka;
 
 import com.webchat.msg.object.Msg;
-import com.webchat.room.object.Room;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -28,21 +27,8 @@ public class ListenerConfig {
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, Room> kafkaListenerContainerFactory2() {
-        ConcurrentKafkaListenerContainerFactory<String, Room> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory2());
-        factory.setConcurrency(3);
-        return factory;
-    }
-
-    @Bean
     public ConsumerFactory<String, Msg> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(), new JsonDeserializer<>(Msg.class));
-    }
-
-    @Bean
-    public ConsumerFactory<String, Room> consumerFactory2() {
-        return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(), new JsonDeserializer<>(Room.class));
     }
 
     @Bean

@@ -1,7 +1,6 @@
 package com.webchat.config.kafka;
 
 import com.webchat.msg.object.Msg;
-import com.webchat.room.object.Room;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +23,6 @@ public class ProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, Room> producerFactory2() {
-        return new DefaultKafkaProducerFactory<>(ProducerConfig());
-    }
-
-    @Bean
     public Map<String, Object> ProducerConfig() {
         Map<String, Object> config = new HashMap<>();
         config.put(org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaConstant.KAFKA_BROKER); // Kafka 실행 주소
@@ -41,10 +35,5 @@ public class ProducerConfig {
     public KafkaTemplate<String, Msg> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-
-    @Bean
-    public KafkaTemplate<String, Room> kafkaTemplate2() {
-            return new KafkaTemplate<>(producerFactory2());
-        }
     
 }
