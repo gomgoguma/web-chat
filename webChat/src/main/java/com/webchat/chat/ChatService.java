@@ -32,7 +32,7 @@ public class ChatService {
             try {
                 msgRespository.save(msg);
                 log.info("Produce message : " + msg);
-                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_PREFIX + msg.getRoomId(), msg).get();
+                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

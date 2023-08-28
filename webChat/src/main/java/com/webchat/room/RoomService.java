@@ -19,10 +19,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -41,18 +39,7 @@ public class RoomService {
         if(roomId != null) {
             List<Integer> userIdList = roomCreateObject.getUserIdList();
             userIdList.add(user.getUser().getId());
-            int count = roomMapper.insertRoomUser(roomId, userIdList);
-            if(count > 0) {
-                try {
-                    KafkaUtil.createTopic(KafkaConstant.KAFKA_BROKER, "room"+roomId, 3, (short) 1);
-                    log.warn("Topic " + "room"+roomId + " created successfully.");
-                } catch (ExecutionException | InterruptedException e) {
-                    log.warn("Error creating topic: " + e.getMessage());
-                    responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
-                    responseObject.setResMsg("채팅방 생성에 실패하였습니다.");
-                    return responseObject;
-                }
-            }
+            roomMapper.insertRoomUser(roomId, userIdList);
         }
 
         responseObject.setResCd(ResponseConstant.OK);
@@ -84,10 +71,8 @@ public class RoomService {
                         }
                     }
                 }
-                roomList.sort((room1, room2) -> room2.getRecentMsgDtm().compareTo(room1.getRecentMsgDtm()));
+                roomList.sort(Comparator.comparing(RoomSearchResultObject::getRecentMsgDtm, Comparator.nullsLast(Comparator.reverseOrder())));
             }
-
-            KafkaUtil.initTopics(KafkaConstant.KAFKA_BROKER, roomIds);
         }
 
         responseObject.setData(roomList);

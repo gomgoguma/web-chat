@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ENC(3ViTD3QkAeU7R99lj6qidgkGoXDiwz745AS5b/woAt7HYJgI/PWoxRVIyX1RRjssRCz8rnA0FxT9fBShuia23Dwp9G1F1crSQUSXf7IrW9iXHx7cCxbizJT51bijocuvtN4Zcu1/kPo=)
-    username: ENC(EnBulQGDlvtvBGie6GxpU0bDhWuUPsla5pXFmuGd5FE=)
-    password: ENC(OBIzNE4tHVt7Xl7XYJzd6WRO5+K5CO/gXlFvUm5StLk=)
+    url: ENC(bxjPmOguMVVznoKSvGExB0wIRPeCY6baF6gsacebXkrslN7YAE9nqrBnEkdh8NguhUIsVp1BRJnIyoaReGd34VLYio6F45ZRgq/515oewpugGD2NUS6u6WOfMKSapEkTAgwwTZLePNM=)
+    username: ENC(Myd7XFw0EYm4aSHuUARop6tlAOAgfYr7VU1R9L/BVA4=)
+    password: ENC(nAuLHBNgLeMl/P7ZIqfd1jZxlIyUGa1ctxpo0nwWmFo=)
 
   data:
     mongodb:
