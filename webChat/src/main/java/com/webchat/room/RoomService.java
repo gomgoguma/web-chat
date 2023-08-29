@@ -35,13 +35,15 @@ public class RoomService {
     public ResponseObject<?> createRoom(RoomCreateObject roomCreateObject, CustomUserDetails user) {
         ResponseObject responseObject = new ResponseObject();
 
-        Integer roomId = roomMapper.insertRoom(user.getUser().getId());
+        int ownId = user.getUser().getId();
+        Integer roomId = roomMapper.insertRoom(ownId);
         if(roomId != null) {
             List<Integer> userIdList = roomCreateObject.getUserIdList();
             userIdList.add(user.getUser().getId());
-            roomMapper.insertRoomUser(roomId, userIdList);
+            roomMapper.insertRoomUser(roomId, userIdList, ownId);
         }
 
+        responseObject.setData(roomId);
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
     }

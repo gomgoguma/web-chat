@@ -22,6 +22,7 @@
             user_id
           , room_id
           , join_dtm
+          , is_visible
         )
         VALUES
         <foreach collection="userIdList" item="item" separator="," >
@@ -29,6 +30,14 @@
             #{item}
           , #{roomId}
           , CURRENT_TIMESTAMP
+          <choose>
+              <when test="ownId == item">
+                , 'Y'
+              </when>
+              <otherwise>
+                , 'N'
+              </otherwise>
+          </choose>
         )
         </foreach>
     </insert>
@@ -45,6 +54,7 @@
         FROM tb_room tr
         JOIN tb_room_user tru ON tr.id = tru.room_id
         WHERE tru.user_id = #{id}
+          AND tru.is_visible = 'Y'
         ORDER BY id
     </select>
 
@@ -58,4 +68,23 @@
         WHERE id = #{id}
     </delete>
 
+    <select id="getHiddenCount" resultType="int">
+        SELECT COUNT(1)
+        FROM tb_room_user
+        WHERE room_id = #{id}
+          AND is_visible = 'N'
+    </select>
+
+    <update id="updateUserVisible" parameterType="int">
+        UPDATE tb_room_user
+        SET is_visible = 'Y'
+        WHERE room_id = #{id}
+          AND is_visible = 'N'
+    </update>
+
+    <select id="getRoomUserList" resultType="int">
+        SELECT user_id
+        FROM tb_room_user
+        WHERE room_id = #{id}
+    </select>
 </mapper>

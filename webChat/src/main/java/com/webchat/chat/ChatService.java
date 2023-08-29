@@ -6,6 +6,7 @@ import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.msg.MsgRespository;
 import com.webchat.msg.object.Msg;
+import com.webchat.room.RoomMapper;
 import com.webchat.user.object.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class ChatService {
 
     private final KafkaTemplate<String, Msg> kafkaTemplate;
     private final MsgRespository msgRespository;
+    private final RoomMapper roomMapper;
 
     @Transactional
     public ResponseObject<?> sendMsg(Msg msg, CustomUserDetails principal) {
@@ -31,7 +33,13 @@ public class ChatService {
         if(user != null || user.getRoomList() != null || Arrays.asList(user.getRoomList().split(",")).contains(msg.getRoomId().toString()) ) {
             try {
                 msgRespository.save(msg);
-                log.info("Produce message : " + msg);
+                int hiddenCount = roomMapper.getHiddenCount(msg.getRoomId());
+                if(hiddenCount > 0) {
+                    roomMapper.updateUserVisible(msg.getRoomId());
+                    msg.setRoomName("새로운 방");
+                }
+
+                //log.info("Produce message : " + msg);
                 kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
             } catch (Exception e) {
                 throw new RuntimeException(e);
