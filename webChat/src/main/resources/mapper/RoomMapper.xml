@@ -2,16 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.webchat.room.RoomMapper">
 
-    <select id="insertRoom" parameterType="int" resultType="int">
+    <select id="insertRoom" resultType="int">
         INSERT INTO tb_room
         (
             create_dtm
           , host_id
+          , room_type
         )
         VALUES
         (
             CURRENT_TIMESTAMP
           , #{userId}
+          , #{roomType}
         )
         RETURNING id
     </select>
@@ -42,14 +44,26 @@
         </foreach>
     </insert>
 
-    <select id="getRooms" parameterType="int" resultType="com.webchat.room.object.RoomSearchResultObject">
+    <select id="getRoom" resultType="com.webchat.room.object.RoomSearchResultObject">
+        SELECT tr.*
+             , STRING_AGG(tu.name, ', ') room_name
+        FROM tb_room tr
+        JOIN tb_room_user tru ON tr.id = tru.room_id
+        JOIN tb_user tu ON tu.id = tru.user_id
+        WHERE tru.user_id != #{userId}
+          AND tr.id = #{roomId}
+        GROUP BY tr.id
+        ORDER BY tr.id
+    </select>
+
+    <select id="getMyRooms" parameterType="int" resultType="com.webchat.room.object.RoomSearchResultObject">
         SELECT tr.*
              , (
                     SELECT STRING_AGG(u.name, ', ')
                     FROM tb_room_user ru
                     JOIN tb_user u ON u.id = ru.user_id
                     WHERE ru.room_id = tr.id
-                      AND ru.user_id != tr.host_id
+                      AND ru.user_id != #{id}
                 ) room_name
         FROM tb_room tr
         JOIN tb_room_user tru ON tr.id = tru.room_id

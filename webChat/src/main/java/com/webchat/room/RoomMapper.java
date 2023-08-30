@@ -8,10 +8,10 @@ import java.util.List;
 
 @Mapper
 public interface RoomMapper {
-    Integer insertRoom(Integer id);
+    Integer insertRoom(@Param("userId") Integer userId, @Param("roomType") String roomType);
     int insertRoomUser(@Param("roomId") Integer roomId, @Param("userIdList") List<Integer> userIdList, @Param("ownId") int ownId);
 
-    List<RoomSearchResultObject> getRooms(Integer id);
+    List<RoomSearchResultObject> getMyRooms(Integer id);
 
     int deleteRoomUser(Integer roomId);
     int deleteRoom(Integer roomId);
@@ -20,4 +20,6 @@ public interface RoomMapper {
     int updateUserVisible(Integer roomId);
 
     List<Integer> getRoomUserList(Integer roomId);
+
+    RoomSearchResultObject getRoom(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
 }

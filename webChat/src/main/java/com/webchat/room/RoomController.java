@@ -22,8 +22,13 @@ public class RoomController {
     }
 
     @GetMapping("")
-    public ResponseObject<?> getRooms(@AuthenticationPrincipal CustomUserDetails user) {
-        return roomService.getRooms(user);
+    public ResponseObject<?> getRoom(@RequestParam (name = "roomId") Integer roomId, @AuthenticationPrincipal CustomUserDetails principal) {
+        return roomService.getRoom(roomId, principal);
+    }
+
+    @GetMapping("my")
+    public ResponseObject<?> getMyRooms(@AuthenticationPrincipal CustomUserDetails user) {
+        return roomService.getMyRooms(user);
     }
 
     @DeleteMapping("")

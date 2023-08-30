@@ -36,7 +36,8 @@ public class RoomService {
         ResponseObject responseObject = new ResponseObject();
 
         int ownId = user.getUser().getId();
-        Integer roomId = roomMapper.insertRoom(ownId);
+        String roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
+        Integer roomId = roomMapper.insertRoom(ownId, roomType);
         if(roomId != null) {
             List<Integer> userIdList = roomCreateObject.getUserIdList();
             userIdList.add(user.getUser().getId());
@@ -48,13 +49,13 @@ public class RoomService {
         return responseObject;
     }
 
-    public ResponseObject<List<RoomSearchResultObject>> getRooms(CustomUserDetails user) {
+    public ResponseObject<List<RoomSearchResultObject>> getMyRooms(CustomUserDetails user) {
         ResponseObject<List<RoomSearchResultObject>> responseObject = new ResponseObject<>();
 
         User userInfo = user.getUser();
         List<RoomSearchResultObject> roomList = null;
         if(userInfo != null) {
-            roomList = roomMapper.getRooms(userInfo.getId());
+            roomList = roomMapper.getMyRooms(userInfo.getId());
         }
 
         if(roomList != null) {
@@ -115,6 +116,20 @@ public class RoomService {
             responseObject.setResCd(ResponseConstant.NOT_FOUND);
         }
         responseObject.setResCd(ResponseConstant.OK);
+        return responseObject;
+    }
+
+    public ResponseObject<?> getRoom(Integer roomId, CustomUserDetails principal) {
+        ResponseObject responseObject = new ResponseObject();
+
+        RoomSearchResultObject roomSearchResultObject = roomMapper.getRoom(roomId, principal.getUser().getId());
+        if(roomSearchResultObject == null) {
+            responseObject.setResCd(ResponseConstant.NOT_FOUND);
+        }
+        else {
+            responseObject.setData(roomSearchResultObject);
+            responseObject.setResCd(ResponseConstant.OK);
+        }
         return responseObject;
     }
 }
