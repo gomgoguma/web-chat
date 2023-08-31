@@ -32,7 +32,7 @@ public class RoomController {
     }
 
     @DeleteMapping("")
-    public  ResponseObject<?> deleteRoom(@RequestParam (name = "roomId") Integer roomId) {
-        return roomService.deleteRoom(roomId);
+    public  ResponseObject<?> deleteRoom(@RequestParam (name = "roomId") Integer roomId, @AuthenticationPrincipal CustomUserDetails principal) {
+        return roomService.deleteRoom(roomId, principal);
     }
 }

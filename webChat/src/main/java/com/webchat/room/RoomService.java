@@ -1,7 +1,5 @@
 package com.webchat.room;
 
-import com.webchat.config.kafka.KafkaConstant;
-import com.webchat.config.kafka.KafkaUtil;
 import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
@@ -102,19 +100,20 @@ public class RoomService {
     }
 
     @Transactional
-    public ResponseObject<?> deleteRoom(Integer roomId) {
+    public ResponseObject<?> deleteRoom(Integer roomId, CustomUserDetails principal) {
         ResponseObject responseObject = new ResponseObject();
+        User user = principal.getUser();
 
-        if( roomMapper.deleteRoomUser(roomId) > 0
-                && roomMapper.deleteRoom(roomId) > 0) {
-            // windows에서 topic 삭제 이슈 있음
-            if(!KafkaUtil.deleteTopic(KafkaConstant.KAFKA_BROKER,"room"+roomId)) {
-                throw new RuntimeException("토픽 삭제 실패");
-            }
+        String roomType = roomMapper.getRoomType(roomId);
+        if("P".equals(roomType)) { // 1대1
+            // 채팅방 사용자 숨김
+            roomMapper.updateVisibleState(roomId, user.getId());
         }
-        else {
-            responseObject.setResCd(ResponseConstant.NOT_FOUND);
+        else if("G".equals(roomType)) { // 그룹 채팅
+            // 채팅방 사용자 삭제
+            roomMapper.deleteRoomUser(roomId, user.getId());
         }
+
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
     }

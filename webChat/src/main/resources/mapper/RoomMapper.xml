@@ -74,7 +74,8 @@
 
     <delete id="deleteRoomUser" parameterType="int">
         DELETE FROM tb_room_user
-        WHERE room_id = #{id}
+        WHERE room_id = #{roomId}
+          AND user_id = #{userId}
     </delete>
 
     <delete id="deleteRoom" parameterType="int">
@@ -101,4 +102,17 @@
         FROM tb_room_user
         WHERE room_id = #{id}
     </select>
+
+    <select id="getRoomType" resultType="String">
+        SELECT room_type
+        FROM tb_room
+        WHERE id = #{roomId}
+    </select>
+
+    <update id="updateVisibleState">
+        UPDATE tb_room_user
+        SET is_visible = 'N'
+        WHERE room_id = #{roomId}
+          AND user_id = #{userId}
+    </update>
 </mapper>

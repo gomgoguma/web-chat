@@ -13,7 +13,7 @@ public interface RoomMapper {
 
     List<RoomSearchResultObject> getMyRooms(Integer id);
 
-    int deleteRoomUser(Integer roomId);
+    int deleteRoomUser(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
     int deleteRoom(Integer roomId);
 
     int getHiddenCount(Integer roomId);
@@ -22,4 +22,8 @@ public interface RoomMapper {
     List<Integer> getRoomUserList(Integer roomId);
 
     RoomSearchResultObject getRoom(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
+
+    String getRoomType(Integer roomId);
+
+    int updateVisibleState(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
 }
