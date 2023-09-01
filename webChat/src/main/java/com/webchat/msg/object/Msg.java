@@ -26,5 +26,4 @@ public class Msg {
     @NotEmpty
     private String msg;
     private String dtm;
-    private String roomName;
 }

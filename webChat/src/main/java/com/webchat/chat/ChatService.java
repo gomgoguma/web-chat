@@ -3,7 +3,6 @@ package com.webchat.chat;
 import com.webchat.config.kafka.KafkaConstant;
 import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
-import com.webchat.config.security.CustomUserDetails;
 import com.webchat.msg.MsgRespository;
 import com.webchat.msg.object.Msg;
 import com.webchat.room.RoomMapper;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -26,29 +23,27 @@ public class ChatService {
     private final RoomMapper roomMapper;
 
     @Transactional
-    public ResponseObject<?> sendMsg(Msg msg, CustomUserDetails principal) {
+    public ResponseObject<?> sendMsg(Msg msg, User user) {
         ResponseObject responseObject = new ResponseObject();
 
-        User user = principal.getUser();
-        if(user != null || user.getRoomList() != null || Arrays.asList(user.getRoomList().split(",")).contains(msg.getRoomId().toString()) ) {
-            try {
-                msgRespository.save(msg);
-                int hiddenCount = roomMapper.getHiddenCount(msg.getRoomId());
-                if(hiddenCount > 0) {
-                    roomMapper.updateUserVisible(msg.getRoomId());
-                    msg.setRoomName("새로운 방");
-                }
-
-                //log.info("Produce message : " + msg);
-                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        try {
+            String resErr = roomMapper.validateChatData(msg, user.getId()); // 채팅 권한,데이터 검증
+            if(resErr != null) {
+                responseObject.setResErr(resErr);
+                return responseObject;
             }
+            msgRespository.save(msg); // 채팅 메시지 momgo db 저장
+
+            if(roomMapper.getHiddenUserCount(msg.getRoomId()) > 0) { // 채팅방에 초대되었지만 채팅방이 보이지 않는 사용자 업데이트
+                roomMapper.updateUserVisible(msg.getRoomId());
+            }
+
+            kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
+
             responseObject.setResCd(ResponseConstant.OK);
-        }
-        else {
-            responseObject.setResCd(ResponseConstant.FORBIDDEN);
-            responseObject.setResMsg("채팅방 권한이 없습니다.");
+        } catch (Exception e) {
+            log.warn("Exception During Send Msg", e);
+            responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 
         return responseObject;

@@ -21,6 +21,6 @@ public class ChatController {
 
     @PostMapping(value = "/send")
     public ResponseObject<?> sendMessage(@RequestBody @Valid Msg msg, @AuthenticationPrincipal CustomUserDetails principal) {
-        return chatService.sendMsg(msg, principal);
+        return chatService.sendMsg(msg, principal.getUser());
     }
 }

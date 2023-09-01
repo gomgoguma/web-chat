@@ -83,7 +83,7 @@
         WHERE id = #{id}
     </delete>
 
-    <select id="getHiddenCount" resultType="int">
+    <select id="getHiddenUserCount" resultType="int">
         SELECT COUNT(1)
         FROM tb_room_user
         WHERE room_id = #{id}
@@ -115,4 +115,16 @@
         WHERE room_id = #{roomId}
           AND user_id = #{userId}
     </update>
+
+    <select id="validateChatData" resultType="String">
+        SELECT
+            CASE
+                WHEN tru.id IS NULL
+                THEN '401,채팅방 권한이 없습니다.'
+            END
+        FROM tb_room tr
+        LEFT JOIN tb_room_user tru ON tru.room_id = tr.id
+                                  AND tru.user_id = #{userId}
+        WHERE tr.id = #{msg.roomId}
+    </select>
 </mapper>

@@ -16,12 +16,12 @@ public class GlobalExceptionHandler {
     public ResponseObject<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
         BindingResult bindingResult = ex.getBindingResult();
         String err = bindingResult.getAllErrors().toString();
-        return new ResponseObject<>(0, null, err, ResponseConstant.BAD_REQUEST);
+        return new ResponseObject<>(0, null, err, ResponseConstant.BAD_REQUEST, null);
     }
 
     @ExceptionHandler({NullPointerException.class, SQLException.class, RuntimeException.class})
     public ResponseObject<?> handleServerError(Exception e) {
         String err = e.getMessage();
-        return new ResponseObject<>(0, null, err, ResponseConstant.INTERNAL_SERVER_ERROR);
+        return new ResponseObject<>(0, null, err, ResponseConstant.INTERNAL_SERVER_ERROR, null);
     }
 }

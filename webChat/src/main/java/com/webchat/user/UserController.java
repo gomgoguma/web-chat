@@ -23,18 +23,18 @@ public class UserController {
     @GetMapping("")
     public ResponseObject<?> getUsers(@RequestParam(name = "excludeOwnYn", required = false) String excludeOwnYn
                                     , @RequestParam(name = "name", required = false) String name
-                                    , @AuthenticationPrincipal CustomUserDetails user) {
+                                    , @AuthenticationPrincipal CustomUserDetails principal) {
         UserSearchObject userSearchObject = new UserSearchObject();
         if(StringUtils.isNotBlank(excludeOwnYn))
             userSearchObject.setExcludeOwnYn(excludeOwnYn);
         if(StringUtils.isNotBlank(name))
             userSearchObject.setName(name);
-        return userService.getUsers(userSearchObject, user);
+        return userService.getUsers(userSearchObject, principal.getUser());
     }
 
     @PostMapping("")
-    public void join(@RequestBody Map<String, String> joinInfo) {
-        userService.join(joinInfo);
+    public ResponseObject<?> join(@RequestBody Map<String, String> joinInfo) {
+        return userService.join(joinInfo);
     }
 
     @PostMapping("/login")
@@ -43,7 +43,7 @@ public class UserController {
     }
 
     @PostMapping("/check")
-    public ResponseObject<?> check(@AuthenticationPrincipal CustomUserDetails user) {
-        return userService.check(user);
+    public ResponseObject<?> check(@AuthenticationPrincipal CustomUserDetails principal) {
+        return userService.check(principal.getUser());
     }
 }

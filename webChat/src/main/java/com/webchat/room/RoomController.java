@@ -17,22 +17,22 @@ public class RoomController {
     private final RoomService roomService;
 
     @PostMapping("")
-    public ResponseObject<?> createRoom(@RequestBody @Valid RoomCreateObject roomCreateObject, @AuthenticationPrincipal CustomUserDetails user) {
-        return roomService.createRoom(roomCreateObject, user);
+    public ResponseObject<?> createRoom(@RequestBody @Valid RoomCreateObject roomCreateObject, @AuthenticationPrincipal CustomUserDetails principal) {
+        return roomService.createRoom(roomCreateObject, principal.getUser());
     }
 
     @GetMapping("")
     public ResponseObject<?> getRoom(@RequestParam (name = "roomId") Integer roomId, @AuthenticationPrincipal CustomUserDetails principal) {
-        return roomService.getRoom(roomId, principal);
+        return roomService.getRoom(roomId, principal.getUser());
     }
 
     @GetMapping("my")
-    public ResponseObject<?> getMyRooms(@AuthenticationPrincipal CustomUserDetails user) {
-        return roomService.getMyRooms(user);
+    public ResponseObject<?> getMyRooms(@AuthenticationPrincipal CustomUserDetails principal) {
+        return roomService.getMyRooms(principal.getUser());
     }
 
     @DeleteMapping("")
     public  ResponseObject<?> deleteRoom(@RequestParam (name = "roomId") Integer roomId, @AuthenticationPrincipal CustomUserDetails principal) {
-        return roomService.deleteRoom(roomId, principal);
+        return roomService.deleteRoom(roomId, principal.getUser());
     }
 }

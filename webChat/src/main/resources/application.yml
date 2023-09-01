@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ENC(bxjPmOguMVVznoKSvGExB0wIRPeCY6baF6gsacebXkrslN7YAE9nqrBnEkdh8NguhUIsVp1BRJnIyoaReGd34VLYio6F45ZRgq/515oewpugGD2NUS6u6WOfMKSapEkTAgwwTZLePNM=)
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: ENC(EevH82O2TDufzfy/8y71TI2oYK7NHICqsF19CdM+0L2zuPMrW4hXtcHePI6sIC3fj1X3FF0JOqW3F5wol0FWj1NyJvaMlRLwVtVTgmhg2Au0ct+/aFQ+X3IvWayxVrKi7u5jZf0H1qWJybQS33+8aw==)
     username: ENC(Myd7XFw0EYm4aSHuUARop6tlAOAgfYr7VU1R9L/BVA4=)
     password: ENC(nAuLHBNgLeMl/P7ZIqfd1jZxlIyUGa1ctxpo0nwWmFo=)
 
@@ -35,3 +35,11 @@ jwt:
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    jdbc:
+      audit: OFF
+      resultset: OFF
+      resultsettable: info
+      connection: OFF
+      sqlonly: info
+      sqltiming: OFF
+

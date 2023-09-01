@@ -5,17 +5,17 @@ import com.webchat.config.jwt.JwtTokenProvider;
 import com.webchat.config.jwt.JwtUtil;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.config.response.ResponseConstant;
-import com.webchat.config.security.CustomUserDetails;
 import com.webchat.user.object.User;
 import com.webchat.user.object.UserLoginObject;
 import com.webchat.user.object.UserSearchObject;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
     private final UserMapper userMapper;
@@ -30,18 +31,23 @@ public class UserService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public ResponseObject<?> getUsers(UserSearchObject userSearchObject, CustomUserDetails user) {
-        User userInfo = user.getUser();
-        if(userInfo != null)
-            userSearchObject.setUserId(userInfo.getId());
-
-        List<Map<String, Object>> userList = userMapper.getUsers(userSearchObject);
+    @Transactional(readOnly = true)
+    public ResponseObject<?> getUsers(UserSearchObject userSearchObject, User user) {
         ResponseObject responseObject = new ResponseObject();
-        responseObject.setData(userList);
-        responseObject.setResCd(userList.isEmpty() ? ResponseConstant.NOT_FOUND : ResponseConstant.OK);
+        userSearchObject.setUserId(user.getId());
+        try {
+            List<Map<String, Object>> userList = userMapper.getUsers(userSearchObject);
+            responseObject.setData(userList);
+            responseObject.setResCd(userList.isEmpty() ? ResponseConstant.NOT_FOUND : ResponseConstant.OK);
+        } catch (Exception e) {
+            log.warn("Exception During Search User", e);
+            responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
+        }
+
         return responseObject;
     }
 
+    @Transactional
     public ResponseObject<?> login(UserLoginObject userLoginObject, HttpServletResponse response) {
         ResponseObject responseObject = new ResponseObject();
 
@@ -52,6 +58,7 @@ public class UserService {
             authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         }
         catch(Exception e) {
+            log.warn("Exception During Validate User", e);
             responseObject.setResMsg("사용자 정보가 일치하지 않습니다.");
             responseObject.setResCd(ResponseConstant.UNAUTHORIZED);
             return responseObject;
@@ -72,20 +79,35 @@ public class UserService {
         return responseObject;
     }
 
-    public void join(Map<String, String> joinInfo) {
+    @Transactional
+    public ResponseObject<?> join(Map<String, String> joinInfo) {
+        ResponseObject responseObject = new ResponseObject();
         joinInfo.put("password", encoder.encode(joinInfo.get("password")));
-        userMapper.insertUser(joinInfo);
+
+        try {
+            // 사용자 검증
+            // username 중복 확인
+            // String resErr = validateUserJoinData(roomId, user);
+
+            userMapper.insertUser(joinInfo);
+            responseObject.setResCd(ResponseConstant.OK);
+        } catch(Exception e) {
+            log.warn("Exception During Join User", e);
+            responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
+        }
+        return responseObject;
     }
 
-    public ResponseObject<?> check(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("username", customUserDetails.getUser().getUsername());
-        userInfo.put("role", customUserDetails.getUser().getRole());
-        userInfo.put("email", customUserDetails.getUser().getEmail());
-        userInfo.put("name", customUserDetails.getUser().getName());
-        userInfo.put("userId", customUserDetails.getUser().getId());
-
+    public ResponseObject<?> check(User user) {
         ResponseObject responseObject = new ResponseObject();
+
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("username", user.getUsername());
+        userInfo.put("role", user.getRole());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("name", user.getName());
+        userInfo.put("userId", user.getId());
+
         responseObject.setData(userInfo);
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
