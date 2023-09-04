@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -37,17 +38,22 @@ public class RoomService {
         String roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
 
         try {
-            Integer roomId = roomMapper.insertRoom(ownId, roomType);
-            Objects.requireNonNull(roomId, "채팅방 생성 실패");
+            Map<String, Object> result = roomMapper.validateCreateRoomData(roomCreateObject);
+            String resErr = (String) result.get("res_err");
+            if(!"".equals(resErr)) {
+                responseObject.setResErr(resErr);
+                return responseObject;
+            }
 
+            Integer roomId = Objects.requireNonNull(roomMapper.insertRoom(ownId, roomType), "채팅방 생성 실패");
             List<Integer> userIdList = roomCreateObject.getUserIdList();
             userIdList.add(user.getId());
-            Objects.requireNonNull(roomMapper.insertRoomUser(roomId, userIdList, ownId), "채팅방 사용자 추가 실패.");
+            Objects.requireNonNull(roomMapper.insertRoomUser(roomId, userIdList, ownId), "채팅방 사용자 추가 실패");
 
             responseObject.setResCd(ResponseConstant.OK);
             responseObject.setData(roomId);
         } catch (Exception e) {
-            log.warn("Exception During Create Room", e);
+            log.warn("Exception During Room Create", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 
@@ -86,7 +92,7 @@ public class RoomService {
                 responseObject.setData(roomList);
             }
         } catch (Exception e) {
-            log.warn("Exception During Search MyRoom", e);
+            log.warn("Exception During MyRoom Search", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 
@@ -116,25 +122,26 @@ public class RoomService {
         ResponseObject responseObject = new ResponseObject();
         
         try {
-            // 채팅방 검증
-            // 채팅방 존재하는지, 본인의 채팅방인지
-            // String resErr = validateRoomDeleteData(roomId, user);
+            Map<String, Object> result = roomMapper.validateRoomDeleteData(roomId, user.getId());
+            String resErr = (String) result.get("res_err");
+            if(!"".equals(resErr)) {
+                responseObject.setResErr(resErr);
+                return responseObject;
+            }
 
-            String roomType = roomMapper.getRoomType(roomId);
-            Objects.requireNonNull(roomType, "채팅방이 존재하지 않습니다.");
-
+            String roomType = (String)result.get("room_type");
             if("P".equals(roomType)) { // 1대1
                 // 채팅방 사용자 숨김
-                roomMapper.updateVisibleState(roomId, user.getId());
+                Objects.requireNonNull(roomMapper.updateVisibleState(roomId, user.getId()), "채팅방 사용자 상태 변경 실패");
             }
             else if("G".equals(roomType)) { // 그룹 채팅
                 // 채팅방 사용자 삭제
-                roomMapper.deleteRoomUser(roomId, user.getId());
+                Objects.requireNonNull(roomMapper.deleteRoomUser(roomId, user.getId()), "채팅방 사용자 삭제 실패");
             }
 
             responseObject.setResCd(ResponseConstant.OK);
         } catch (Exception e) {
-            log.warn("Exception During Delete Room", e);
+            log.warn("Exception During Room Delete", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 
@@ -155,7 +162,7 @@ public class RoomService {
                 responseObject.setData(roomSearchResultObject);
             }
         } catch (Exception e) {
-            log.warn("Exception During Search Room", e);
+            log.warn("Exception During Room Search", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 

@@ -4,6 +4,7 @@ import com.webchat.config.response.ResponseObject;
 import com.webchat.config.security.CustomUserDetails;
 import com.webchat.user.object.UserLoginObject;
 import com.webchat.user.object.UserSearchObject;
+import com.webchat.user.object.UserSignUpObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -33,8 +33,8 @@ public class UserController {
     }
 
     @PostMapping("")
-    public ResponseObject<?> join(@RequestBody Map<String, String> joinInfo) {
-        return userService.join(joinInfo);
+    public ResponseObject<?> signUp(@Valid @RequestBody UserSignUpObject userSignUpObject) {
+        return userService.signUp(userSignUpObject);
     }
 
     @PostMapping("/login")

@@ -21,18 +21,20 @@
         WHERE tu.username = #{username}
     </select>
 
-    <insert id="insertUser" parameterType="Map">
+    <insert id="insertUser" parameterType="UserSignUpObject">
         INSERT INTO tb_user
         (
-         username
-        ,password
-        ,email
+            username
+          , password
+          , email
+          , name
         )
         VALUES
         (
-         #{username}
-        ,#{password}
-        ,#{email}
+            #{username}
+          , #{password}
+          , #{email}
+          , #{name}
         )
     </insert>
 
@@ -49,5 +51,17 @@
         FROM tb_user
         WHERE username = #{param1}
          AND refresh_token = #{param2}
+    </select>
+
+    <select id="validateUserSignUpData" parameterType="UserSignUpObject" resultType="Map">
+        SELECT
+            COALESCE(
+                CASE
+                    WHEN count(1) > 0
+                    THEN '422,사용 중인 아이디입니다.'
+                END, ''
+            ) res_err
+        FROM tb_user
+        WHERE username = #{username}
     </select>
 </mapper>

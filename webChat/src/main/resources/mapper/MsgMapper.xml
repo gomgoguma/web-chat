@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webchat.msg.MsgMapper">
+    <select id="validateChatData" resultType="Map">
+        SELECT
+            COALESCE(
+                CASE
+                    WHEN tru.id IS NULL
+                        THEN '401,채팅방 권한이 없습니다.'
+                    END, ''
+            ) res_err
+        FROM tb_room tr
+        LEFT JOIN tb_room_user tru ON tru.room_id = tr.id AND tru.user_id = #{userId}
+        WHERE tr.id = #{msg.roomId}
+    </select>
+
+    <select id="validateMsgSearchData" resultType="Map">
+        SELECT
+            COALESCE(
+                CASE
+                    WHEN tru.id IS NULL
+                        THEN '401,채팅방 권한이 없습니다.'
+                    END, ''
+            ) res_err
+        FROM tb_room tr
+        LEFT JOIN tb_room_user tru ON tru.room_id = tr.id AND tru.user_id = #{userId}
+        WHERE tr.id = #{roomId}
+    </select>
+</mapper>

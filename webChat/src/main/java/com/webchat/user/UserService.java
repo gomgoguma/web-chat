@@ -8,6 +8,7 @@ import com.webchat.config.response.ResponseConstant;
 import com.webchat.user.object.User;
 import com.webchat.user.object.UserLoginObject;
 import com.webchat.user.object.UserSearchObject;
+import com.webchat.user.object.UserSignUpObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -40,7 +42,7 @@ public class UserService {
             responseObject.setData(userList);
             responseObject.setResCd(userList.isEmpty() ? ResponseConstant.NOT_FOUND : ResponseConstant.OK);
         } catch (Exception e) {
-            log.warn("Exception During Search User", e);
+            log.warn("Exception During User Search", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
 
@@ -58,7 +60,7 @@ public class UserService {
             authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         }
         catch(Exception e) {
-            log.warn("Exception During Validate User", e);
+            log.warn("Exception During User Validation", e);
             responseObject.setResMsg("사용자 정보가 일치하지 않습니다.");
             responseObject.setResCd(ResponseConstant.UNAUTHORIZED);
             return responseObject;
@@ -80,19 +82,22 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseObject<?> join(Map<String, String> joinInfo) {
+    public ResponseObject<?> signUp(UserSignUpObject userSignUpObject) {
         ResponseObject responseObject = new ResponseObject();
-        joinInfo.put("password", encoder.encode(joinInfo.get("password")));
+        userSignUpObject.setPassword(encoder.encode(userSignUpObject.getPassword()));
 
         try {
-            // 사용자 검증
-            // username 중복 확인
-            // String resErr = validateUserJoinData(roomId, user);
+            Map<String, Object> result = userMapper.validateUserSignUpData(userSignUpObject);
+            String resErr = (String) result.get("res_err");
+            if(!"".equals(resErr)) {
+                responseObject.setResErr(resErr);
+                return responseObject;
+            }
 
-            userMapper.insertUser(joinInfo);
+            Objects.requireNonNull(userMapper.insertUser(userSignUpObject), "사용자 등록 실패");
             responseObject.setResCd(ResponseConstant.OK);
         } catch(Exception e) {
-            log.warn("Exception During Join User", e);
+            log.warn("Exception During User Sign-up", e);
             responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
         }
         return responseObject;

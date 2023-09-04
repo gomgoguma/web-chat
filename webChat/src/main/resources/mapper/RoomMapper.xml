@@ -103,12 +103,6 @@
         WHERE room_id = #{id}
     </select>
 
-    <select id="getRoomType" resultType="String">
-        SELECT room_type
-        FROM tb_room
-        WHERE id = #{roomId}
-    </select>
-
     <update id="updateVisibleState">
         UPDATE tb_room_user
         SET is_visible = 'N'
@@ -116,15 +110,36 @@
           AND user_id = #{userId}
     </update>
 
-    <select id="validateChatData" resultType="String">
+    <select id="validateCreateRoomData" resultType="Map">
+        WITH t (user_id) AS (VALUES
+            <foreach collection="roomCreateObject.userIdList" item="item" separator=",">
+            (
+                #{item}
+            )
+            </foreach>
+        )
         SELECT
-            CASE
-                WHEN tru.id IS NULL
-                THEN '401,채팅방 권한이 없습니다.'
-            END
+            COALESCE(
+                CASE
+                    WHEN count(tu.id) != count(t.user_id)
+                    THEN '422,존재하지 않는 사용자가 포함되어 있습니다.'
+                END, ''
+            ) res_err
+        FROM t
+        LEFT JOIN tb_user tu ON t.user_id = tu.id
+    </select>
+
+    <select id="validateRoomDeleteData" resultType="Map">
+        SELECT
+            COALESCE(
+                CASE
+                    WHEN tru.id IS NULL
+                    THEN '401,채팅방 권한이 없습니다.'
+                END, ''
+            ) res_err
+          , tr.room_type
         FROM tb_room tr
-        LEFT JOIN tb_room_user tru ON tru.room_id = tr.id
-                                  AND tru.user_id = #{userId}
-        WHERE tr.id = #{msg.roomId}
+        LEFT JOIN tb_room_user tru ON tru.room_id = tr.id AND tru.user_id = #{userId}
+        WHERE tr.id = #{roomId}
     </select>
 </mapper>
