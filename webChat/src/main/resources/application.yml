@@ -13,6 +13,9 @@ spring:
       host: localhost
       port: 27017
       database: web-chat
+      authentication-database: admin
+      username: ${MONGO_USER}
+      password: ${MONGO_PASS}
       log:
         query:
           enabled: true

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -32,7 +33,7 @@ public class UserController {
         return userService.getUsers(userSearchObject, principal.getUser());
     }
 
-    @PostMapping("")
+    @PostMapping("/signup")
     public ResponseObject<?> signUp(@Valid @RequestBody UserSignUpObject userSignUpObject) {
         return userService.signUp(userSignUpObject);
     }
@@ -45,5 +46,10 @@ public class UserController {
     @PostMapping("/check")
     public ResponseObject<?> check(@AuthenticationPrincipal CustomUserDetails principal) {
         return userService.check(principal.getUser());
+    }
+
+    @PostMapping("/refresh")
+    public ResponseObject<?> validateRefreshToken(HttpServletRequest request) {
+        return userService.validateRefreshToken(request);
     }
 }

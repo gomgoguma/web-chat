@@ -1,5 +1,6 @@
 package com.webchat.room;
 
+import com.webchat.config.exception.DatabaseUpdateException;
 import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.msg.object.Msg;
@@ -19,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -37,6 +37,9 @@ public class RoomService {
         int ownId = user.getId();
         String roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
 
+        List<Integer> userIdList = roomCreateObject.getUserIdList();
+        userIdList.add(user.getId());
+
         try {
             Map<String, Object> result = roomMapper.validateCreateRoomData(roomCreateObject);
             String resErr = (String) result.get("res_err");
@@ -45,10 +48,11 @@ public class RoomService {
                 return responseObject;
             }
 
-            Integer roomId = Objects.requireNonNull(roomMapper.insertRoom(ownId, roomType), "채팅방 생성 실패");
-            List<Integer> userIdList = roomCreateObject.getUserIdList();
-            userIdList.add(user.getId());
-            Objects.requireNonNull(roomMapper.insertRoomUser(roomId, userIdList, ownId), "채팅방 사용자 추가 실패");
+            Integer roomId = roomMapper.insertRoom(ownId, roomType);
+            if(roomId == null)
+                throw new DatabaseUpdateException("채팅방 생성 실패");
+            if(roomMapper.insertRoomUser(roomId, userIdList, ownId) != userIdList.size())
+                throw new DatabaseUpdateException("채팅방 사용자 추가 실패");
 
             responseObject.setResCd(ResponseConstant.OK);
             responseObject.setData(roomId);
@@ -130,13 +134,13 @@ public class RoomService {
             }
 
             String roomType = (String)result.get("room_type");
-            if("P".equals(roomType)) { // 1대1
-                // 채팅방 사용자 숨김
-                Objects.requireNonNull(roomMapper.updateVisibleState(roomId, user.getId()), "채팅방 사용자 상태 변경 실패");
+            if("P".equals(roomType) // 1대1
+                    && roomMapper.updateVisibleState(roomId, user.getId()) <= 0) { // 채팅방 사용자 숨김
+                throw new DatabaseUpdateException("채팅방 사용자 상태 변경 실패");
             }
-            else if("G".equals(roomType)) { // 그룹 채팅
-                // 채팅방 사용자 삭제
-                Objects.requireNonNull(roomMapper.deleteRoomUser(roomId, user.getId()), "채팅방 사용자 삭제 실패");
+            else if("G".equals(roomType) // 그룹 채팅
+                    && roomMapper.deleteRoomUser(roomId, user.getId()) <= 0) { // 채팅방 사용자 삭제
+                throw new DatabaseUpdateException("채팅방 사용자 삭제 실패");
             }
 
             responseObject.setResCd(ResponseConstant.OK);

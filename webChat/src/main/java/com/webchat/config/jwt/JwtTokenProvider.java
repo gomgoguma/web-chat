@@ -15,13 +15,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,14 +47,15 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
-                .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 30))
+                .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 10))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         //Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .claim("username", u.getUsername())
-                .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 60 * 24 * 15))
+                .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 60 * 24 * 7))
+
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -74,7 +73,6 @@ public class JwtTokenProvider {
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
-
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get("auth").toString().split(","))
                         .map(SimpleGrantedAuthority::new)
@@ -84,42 +82,16 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, "",  authorities);
     }
 
-    public String validateToken(Map<String, String> token, HttpServletResponse response) {
+    public String validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token.get("accessToken"));
-            return token.get("accessToken");
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return token;
         }catch (SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT Token", e);
             throw new TokenException("유효하지 않은 토큰입니다.");
         } catch (ExpiredJwtException e) {
-            try {
-                Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token.get("refreshToken"));
-
-                Claims claims = parseClaims(token.get("refreshToken"));
-                if (claims.get("username") == null) {
-                    throw new Exception("유효하지 않은 토큰입니다.");
-                }
-
-                com.webchat.user.object.User user = userMapper.validationRefreshToken((String) claims.get("username"), token.get("refreshToken"));
-                if(user != null) {
-                    String accessToken = Jwts.builder()
-                            .setSubject(user.getUsername())
-                            .claim("auth", user.getRole())
-                            .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 30))
-                            .signWith(key, SignatureAlgorithm.HS256)
-                            .compact();
-
-                    response.addCookie(JwtUtil.createCookie("accessToken", accessToken, "localhost", 60 * 60 * 24));
-                    return accessToken;
-                }
-                else{
-                    throw new Exception("유효하지 않은 토큰입니다.");
-                }
-            }
-            catch (Exception expired) {
-                log.info("Expired JWT Token", e);
-                throw new TokenException("만료된 토큰입니다.");
-            }
+            log.info("Expired JWT Token", e);
+            throw new TokenException("만료된 토큰입니다.");
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
             throw new TokenException("지원되지 않는 토큰입니다.");
@@ -129,7 +101,7 @@ public class JwtTokenProvider {
         }
     }
 
-    private Claims parseClaims(String accessToken) {
+    public Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
         } catch (ExpiredJwtException e) {

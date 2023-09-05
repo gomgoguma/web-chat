@@ -9,12 +9,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -28,14 +25,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         RequestMatcher jwtSkipUri = new OrRequestMatcher(
             new AntPathRequestMatcher("/api/user/login"),
-            new AntPathRequestMatcher("/api/user/join")
+            new AntPathRequestMatcher("/api/user/signup"),
+            new AntPathRequestMatcher("/my-chat/**"), // TO-DO : 웹소켓 인증
+            new AntPathRequestMatcher("/api/user/refresh")
         );
 
         if(!jwtSkipUri.matches(request)) {
             // 토큰 유효성 검사
-            Map<String, String> token = resolveToken(request);
+            String token = request.getHeader("Authorization");
 
-            String accessToken = jwtTokenProvider.validateToken(token,response);
+            String accessToken = jwtTokenProvider.validateToken(token);
             if(accessToken != null) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -46,22 +45,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     // 헤더에서 토큰 추출
-    private Map<String, String> resolveToken(HttpServletRequest request) {
-        Map<String, String> token = new HashMap<>();
-        Cookie[] cookies = request.getCookies();
-        if(cookies != null) {
-            for (Cookie cookie : cookies) {
-                if(token.size() >= 2)
-                    break;
-
-                if ("accessToken".equals(cookie.getName())) {
-                    token.put("accessToken", cookie.getValue());
-                }
-                else if("refreshToken".equals(cookie.getName())) {
-                    token.put("refreshToken", cookie.getValue());
-                }
-            }
-        }
-        return token;
-    }
+//    private Map<String, String> resolveToken(HttpServletRequest request) {
+//        Map<String, String> token = new HashMap<>();
+//        Cookie[] cookies = request.getCookies();
+//        if(cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if(token.size() >= 2)
+//                    break;
+//
+//                if ("accessToken".equals(cookie.getName())) {
+//                    token.put("accessToken", cookie.getValue());
+//                }
+//                else if("refreshToken".equals(cookie.getName())) {
+//                    token.put("refreshToken", cookie.getValue());
+//                }
+//            }
+//        }
+//        return token;
+//    }
 }

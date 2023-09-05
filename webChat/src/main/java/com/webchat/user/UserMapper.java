@@ -13,7 +13,7 @@ public interface UserMapper {
 
     List<Map<String, Object>> getUsers(UserSearchObject userSearchObject);
     User getUser(String username);
-    Integer insertUser(UserSignUpObject userSignUpObject);
+    int insertUser(UserSignUpObject userSignUpObject);
     User validationRefreshToken(String username, String refreshToken);
     Map<String, Object> validateUserSignUpData(UserSignUpObject userSignUpObject);
 }

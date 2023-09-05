@@ -1,5 +1,6 @@
 package com.webchat.user;
 
+import com.webchat.config.exception.DatabaseUpdateException;
 import com.webchat.config.jwt.JwtToken;
 import com.webchat.config.jwt.JwtTokenProvider;
 import com.webchat.config.jwt.JwtUtil;
@@ -9,6 +10,7 @@ import com.webchat.user.object.User;
 import com.webchat.user.object.UserLoginObject;
 import com.webchat.user.object.UserSearchObject;
 import com.webchat.user.object.UserSignUpObject;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +20,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +36,7 @@ public class UserService {
     private final BCryptPasswordEncoder encoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
     public ResponseObject<?> getUsers(UserSearchObject userSearchObject, User user) {
@@ -74,9 +79,9 @@ public class UserService {
         updateMap.put("refreshToken", token.getRefreshToken());
         userMapper.updateUser(updateMap);
 
-        response.addCookie(JwtUtil.createCookie("accessToken", token.getAccessToken(), "localhost", 60 * 60 * 24));
-        response.addCookie(JwtUtil.createCookie("refreshToken", token.getRefreshToken(), "localhost", 60 * 60 * 24 * 30));
+        response.addCookie(jwtUtil.createCookie("refreshToken", token.getRefreshToken(), "localhost", 60 * 60 * 24 * 7));
 
+        responseObject.setData(token.getAccessToken());
         responseObject.setResCd(ResponseConstant.OK);
         return responseObject;
     }
@@ -94,7 +99,10 @@ public class UserService {
                 return responseObject;
             }
 
-            Objects.requireNonNull(userMapper.insertUser(userSignUpObject), "사용자 등록 실패");
+            if(userMapper.insertUser(userSignUpObject) <= 0) {
+                throw new DatabaseUpdateException("사용자 등록 실패");
+            }
+
             responseObject.setResCd(ResponseConstant.OK);
         } catch(Exception e) {
             log.warn("Exception During User Sign-up", e);
@@ -115,6 +123,49 @@ public class UserService {
 
         responseObject.setData(userInfo);
         responseObject.setResCd(ResponseConstant.OK);
+        return responseObject;
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseObject<String> validateRefreshToken(HttpServletRequest request) {
+        ResponseObject responseObject = new ResponseObject();
+
+        String refreshToken = null;
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if(refreshToken == null) {
+            responseObject.setResCd(ResponseConstant.BAD_REQUEST);
+            responseObject.setResMsg("토큰 없음");
+        }
+        else {
+            try {
+                String validateToken = jwtTokenProvider.validateToken(refreshToken);
+                Claims claims = jwtTokenProvider.parseClaims(validateToken);
+
+                String username = Objects.requireNonNull((String) claims.get("username"), "유효하지 않은 토큰");
+                User user = Objects.requireNonNull(userMapper.validationRefreshToken(username, refreshToken), "토큰 없음)");
+
+                String newAccessToken = jwtUtil.createAccessToken(user.getUsername(), user.getRole());
+
+                // Refresh Token Rotation
+                // 리프레시 토큰도 재발급하여 db 업데이트, 쿠키 저장 다시하기
+                // 보안이 강화되지만 서버 부하 증가 > 비동기 처리 고려하기
+
+                responseObject.setData(newAccessToken);
+                responseObject.setResCd(ResponseConstant.OK);;
+            } catch (Exception e) {
+                log.warn("Exception During Refresh token Validation", e);
+                responseObject.setResCd(ResponseConstant.INTERNAL_SERVER_ERROR);
+            }
+        }
+
         return responseObject;
     }
 }

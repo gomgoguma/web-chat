@@ -1,5 +1,6 @@
 package com.webchat.msg;
 
+import com.webchat.config.exception.DatabaseUpdateException;
 import com.webchat.config.kafka.KafkaConstant;
 import com.webchat.config.response.PageResponseObject;
 import com.webchat.config.response.ResponseObject;
@@ -44,8 +45,11 @@ public class MsgService {
 
             msgRespository.save(msg); // 채팅 메시지 momgo db 저장
 
-            if(roomMapper.getHiddenUserCount(msg.getRoomId()) > 0) { // 채팅방에 초대되었지만 채팅방이 보이지 않는 사용자 업데이트
-                Objects.requireNonNull(roomMapper.updateUserVisible(msg.getRoomId()), "채팅방 사용자 상태 변경에 실패했습니다.");
+            // 채팅방에 초대되었지만 채팅방이 보이지 않는 사용자 업데이트
+            int hiddenUserCount = roomMapper.getHiddenUserCount(msg.getRoomId());
+            if(hiddenUserCount > 0
+                    && roomMapper.updateUserVisible(msg.getRoomId()) != hiddenUserCount) {
+                throw new DatabaseUpdateException("채팅방 사용자 상태 변경 실패");
             }
 
             kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
