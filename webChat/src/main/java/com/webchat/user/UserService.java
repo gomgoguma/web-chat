@@ -168,4 +168,16 @@ public class UserService {
 
         return responseObject;
     }
+
+    public ResponseObject<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        ResponseObject responseObject = new ResponseObject();
+
+        Cookie jwtDeleteCookie = new Cookie("refreshToken", null);
+        jwtDeleteCookie.setMaxAge(0);
+        jwtDeleteCookie.setPath("/");
+        response.addCookie(jwtDeleteCookie);
+
+        responseObject.setResCd(ResponseConstant.OK);
+        return responseObject;
+    }
 }

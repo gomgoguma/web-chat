@@ -52,4 +52,9 @@ public class UserController {
     public ResponseObject<?> validateRefreshToken(HttpServletRequest request) {
         return userService.validateRefreshToken(request);
     }
+
+    @PostMapping("/logout")
+    public ResponseObject<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        return userService.logout(request, response);
+    }
 }
