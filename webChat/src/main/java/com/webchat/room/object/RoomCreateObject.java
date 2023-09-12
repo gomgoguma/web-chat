@@ -11,4 +11,6 @@ import java.util.List;
 public class RoomCreateObject {
     @NotEmpty(message = "대화 상대가 없습니다.")
     private List<Integer> userIdList;
+
+    private Integer roomId;
 }

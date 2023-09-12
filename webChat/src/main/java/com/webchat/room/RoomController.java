@@ -17,8 +17,8 @@ public class RoomController {
     private final RoomService roomService;
 
     @PostMapping("")
-    public ResponseObject<?> createRoom(@RequestBody @Valid RoomCreateObject roomCreateObject, @AuthenticationPrincipal CustomUserDetails principal) {
-        return roomService.createRoom(roomCreateObject, principal.getUser());
+    public ResponseObject<?> addRoomUser(@RequestBody @Valid RoomCreateObject roomCreateObject, @AuthenticationPrincipal CustomUserDetails principal) {
+        return roomService.addRoomUser(roomCreateObject, principal.getUser());
     }
 
     @GetMapping("")

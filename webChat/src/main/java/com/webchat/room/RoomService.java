@@ -1,6 +1,7 @@
 package com.webchat.room;
 
 import com.webchat.config.exception.DatabaseUpdateException;
+import com.webchat.config.kafka.KafkaConstant;
 import com.webchat.config.response.ResponseConstant;
 import com.webchat.config.response.ResponseObject;
 import com.webchat.msg.object.Msg;
@@ -14,9 +15,11 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -29,16 +32,19 @@ public class RoomService {
 
     private final RoomMapper roomMapper;
     private final MongoTemplate mongoTemplate;
+    private final KafkaTemplate<String, Msg> kafkaTemplate;
 
     @Transactional
-    public ResponseObject<?> createRoom(RoomCreateObject roomCreateObject, User user) {
+    public ResponseObject<?> addRoomUser(RoomCreateObject roomCreateObject, User user) {
         ResponseObject responseObject = new ResponseObject();
 
         int ownId = user.getId();
         String roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
 
         List<Integer> userIdList = roomCreateObject.getUserIdList();
-        userIdList.add(user.getId());
+        if(roomCreateObject.getRoomId() == null) {
+            userIdList.add(user.getId());
+        }
 
         try {
             Map<String, Object> result = roomMapper.validateCreateRoomData(roomCreateObject);
@@ -47,12 +53,26 @@ public class RoomService {
                 responseObject.setResErr(resErr);
                 return responseObject;
             }
+            Integer roomId = null;
+            if(roomCreateObject.getRoomId() == null) {
+                roomId = roomMapper.insertRoom(ownId, roomType);
+                if (roomId == null)
+                    throw new DatabaseUpdateException("채팅방 생성 실패");
+            }
+            else {
+                roomId = roomCreateObject.getRoomId();
+            }
 
-            Integer roomId = roomMapper.insertRoom(ownId, roomType);
-            if(roomId == null)
-                throw new DatabaseUpdateException("채팅방 생성 실패");
             if(roomMapper.insertRoomUser(roomId, userIdList, ownId) != userIdList.size())
                 throw new DatabaseUpdateException("채팅방 사용자 추가 실패");
+
+            Msg msg = new Msg();
+            msg.setRoomId(roomId);
+            msg.setType("notification");
+            msg.setMsg(user.getName()+"님이 "+ userIdList +"님을 초대하였습니다.");
+            msg.setDtm(LocalDateTime.now().toString());
+            kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
+            mongoTemplate.save(msg);
 
             responseObject.setResCd(ResponseConstant.OK);
             responseObject.setData(roomId);
@@ -138,9 +158,17 @@ public class RoomService {
                     && roomMapper.updateVisibleState(roomId, user.getId()) <= 0) { // 채팅방 사용자 숨김
                 throw new DatabaseUpdateException("채팅방 사용자 상태 변경 실패");
             }
-            else if("G".equals(roomType) // 그룹 채팅
-                    && roomMapper.deleteRoomUser(roomId, user.getId()) <= 0) { // 채팅방 사용자 삭제
-                throw new DatabaseUpdateException("채팅방 사용자 삭제 실패");
+            else if("G".equals(roomType)) { // 그룹 채팅
+                if(roomMapper.deleteRoomUser(roomId, user.getId()) <= 0) // 채팅방 사용자 삭제
+                    throw new DatabaseUpdateException("채팅방 사용자 삭제 실패");
+
+                Msg msg = new Msg();
+                msg.setRoomId(roomId);
+                msg.setType("notification");
+                msg.setMsg(user.getName()+"님이 나갔습니다.");
+                msg.setDtm(LocalDateTime.now().toString());
+                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
+                mongoTemplate.save(msg);
             }
 
             responseObject.setResCd(ResponseConstant.OK);
