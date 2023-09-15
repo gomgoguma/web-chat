@@ -16,7 +16,7 @@ public interface RoomMapper {
     List<RoomSearchResultObject> getMyRooms(Integer id);
 
     int deleteRoomUser(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
-    int deleteRoom(Integer roomId);
+    //int deleteRoom(Integer roomId);
 
     int getHiddenUserCount(Integer roomId);
     int updateUserVisible(Integer roomId);
@@ -30,4 +30,8 @@ public interface RoomMapper {
     Map<String, Object> validateCreateRoomData(@Param("roomCreateObject") RoomCreateObject roomCreateObject);
 
     Map<String, Object> validateRoomDeleteData(@Param("roomId") Integer roomId, @Param("userId") Integer userId);
+
+    String getInvitedUsername(@Param("userIdList") List<Integer> userIdList, @Param("ownId") int ownId);
+
+    String getRoomType(Integer roomId);
 }

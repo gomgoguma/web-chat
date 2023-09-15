@@ -142,4 +142,21 @@
         LEFT JOIN tb_room_user tru ON tru.room_id = tr.id AND tru.user_id = #{userId}
         WHERE tr.id = #{roomId}
     </select>
+
+    <select id="getInvitedUsername" resultType="String">
+        SELECT STRING_AGG(name, ', ') AS username
+        FROM tb_user
+        WHERE id IN
+        <foreach collection="userIdList" item="item" open="(" close=")" separator=",">
+            <if test="item != ownId">
+                #{item}
+            </if>
+        </foreach>
+    </select>
+
+    <select id="getRoomType" resultType="String">
+        SELECT room_type
+        FROM tb_room
+        WHERE id = #{roomId}
+    </select>
 </mapper>

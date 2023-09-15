@@ -39,13 +39,7 @@ public class RoomService {
         ResponseObject responseObject = new ResponseObject();
 
         int ownId = user.getId();
-        String roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
-
         List<Integer> userIdList = roomCreateObject.getUserIdList();
-        if(roomCreateObject.getRoomId() == null) {
-            userIdList.add(user.getId());
-        }
-
         try {
             Map<String, Object> result = roomMapper.validateCreateRoomData(roomCreateObject);
             String resErr = (String) result.get("res_err");
@@ -54,25 +48,34 @@ public class RoomService {
                 return responseObject;
             }
             Integer roomId = null;
-            if(roomCreateObject.getRoomId() == null) {
-                roomId = roomMapper.insertRoom(ownId, roomType);
+            String roomType = null;
+            if(roomCreateObject.getRoomId() == null) { // 새 채팅방
+                roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
+
+                userIdList.add(user.getId()); // 초대자 포함
+                roomId = roomMapper.insertRoom(ownId, roomType); // 채팅방 생성
                 if (roomId == null)
                     throw new DatabaseUpdateException("채팅방 생성 실패");
             }
             else {
                 roomId = roomCreateObject.getRoomId();
+                roomType = roomMapper.getRoomType(roomId);
             }
 
             if(roomMapper.insertRoomUser(roomId, userIdList, ownId) != userIdList.size())
                 throw new DatabaseUpdateException("채팅방 사용자 추가 실패");
 
-            Msg msg = new Msg();
-            msg.setRoomId(roomId);
-            msg.setType("notification");
-            msg.setMsg(user.getName()+"님이 "+ userIdList +"님을 초대하였습니다.");
-            msg.setDtm(LocalDateTime.now().toString());
-            kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
-            mongoTemplate.save(msg);
+            String invitedUsername = roomMapper.getInvitedUsername(userIdList, ownId);
+
+            if("G".equals(roomType)) {
+                Msg msg = new Msg();
+                msg.setRoomId(roomId);
+                msg.setType("notification");
+                msg.setMsg(user.getName() + "님이 " + invitedUsername + "님을 초대하였습니다.");
+                msg.setDtm(LocalDateTime.now().toString());
+                kafkaTemplate.send(KafkaConstant.KAFKA_TOPIC_ROOM, msg).get();
+                mongoTemplate.save(msg);
+            }
 
             responseObject.setResCd(ResponseConstant.OK);
             responseObject.setData(roomId);
