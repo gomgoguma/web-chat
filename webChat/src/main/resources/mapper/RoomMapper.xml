@@ -110,9 +110,9 @@
           AND user_id = #{userId}
     </update>
 
-    <select id="validateCreateRoomData" resultType="Map">
+    <select id="validateCreateRoomData" resultType="Map" parameterType="RoomCreateObject">
         WITH t (user_id) AS (VALUES
-            <foreach collection="roomCreateObject.userIdList" item="item" separator=",">
+            <foreach collection="userIdList" item="item" separator=",">
             (
                 #{item}
             )
@@ -123,10 +123,13 @@
                 CASE
                     WHEN count(tu.id) != count(t.user_id)
                     THEN '422,존재하지 않는 사용자가 포함되어 있습니다.'
+                    WHEN count(tru.id) > 0
+                    THEN '422,채팅방에 이미 있습니다.'
                 END, ''
             ) res_err
         FROM t
         LEFT JOIN tb_user tu ON t.user_id = tu.id
+        LEFT JOIN tb_room_user tru ON tru.user_id = t.user_id AND tru.room_id = #{roomId}
     </select>
 
     <select id="validateRoomDeleteData" resultType="Map">

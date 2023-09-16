@@ -27,7 +27,7 @@ public interface RoomMapper {
 
     int updateVisibleState(@Param("roomId") Integer roomId, @Param("userId")Integer userId);
 
-    Map<String, Object> validateCreateRoomData(@Param("roomCreateObject") RoomCreateObject roomCreateObject);
+    Map<String, Object> validateCreateRoomData(RoomCreateObject roomCreateObject);
 
     Map<String, Object> validateRoomDeleteData(@Param("roomId") Integer roomId, @Param("userId") Integer userId);
 
