@@ -51,8 +51,18 @@ public class RoomService {
             String roomType = null;
             if(roomCreateObject.getRoomId() == null) { // 새 채팅방
                 roomType = roomCreateObject.getUserIdList().size() > 1 ? "G":"P";
-
                 userIdList.add(user.getId()); // 초대자 포함
+
+                // 1대1 채팅방이면서 해당 사용자와의 채팅방이 있는 경우 (숨김 상태 포함) 해당 채팅방 ID 반환
+                if("P".equals(roomType)) {
+                    roomId = roomMapper.getExistingRoom(roomCreateObject.getUserIdList());
+                    if (roomId != null) {
+                        responseObject.setResCd(ResponseConstant.OK);
+                        responseObject.setData(roomId);
+                        return responseObject;
+                    }
+                }
+
                 roomId = roomMapper.insertRoom(ownId, roomType); // 채팅방 생성
                 if (roomId == null)
                     throw new DatabaseUpdateException("채팅방 생성 실패");

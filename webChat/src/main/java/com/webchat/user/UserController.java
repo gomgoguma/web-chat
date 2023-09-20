@@ -24,12 +24,18 @@ public class UserController {
     @GetMapping("")
     public ResponseObject<?> getUsers(@RequestParam(name = "excludeOwnYn", required = false) String excludeOwnYn
                                     , @RequestParam(name = "name", required = false) String name
+                                    , @RequestParam(name = "roomId", required = false) Integer roomId
+                                    , @RequestParam(name = "excludeExitingUserYn", required = false) String excludeExitingUserYn
                                     , @AuthenticationPrincipal CustomUserDetails principal) {
         UserSearchObject userSearchObject = new UserSearchObject();
         if(StringUtils.isNotBlank(excludeOwnYn))
             userSearchObject.setExcludeOwnYn(excludeOwnYn);
         if(StringUtils.isNotBlank(name))
             userSearchObject.setName(name);
+        if(roomId != null)
+            userSearchObject.setRoomId(roomId);
+        if(StringUtils.isNotBlank(excludeExitingUserYn))
+            userSearchObject.setExcludeExitingUserYn(excludeExitingUserYn);
         return userService.getUsers(userSearchObject, principal.getUser());
     }
 

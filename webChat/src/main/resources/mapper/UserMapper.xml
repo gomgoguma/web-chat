@@ -2,15 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.webchat.user.UserMapper">
     <select id="getUsers" resultType="Map">
-        SELECT id
-             , name
-        FROM tb_user
+        SELECT tu.id
+             , tu.name
+        FROM tb_user tu
+        <if test="roomId != null">
+            LEFT JOIN tb_room_user tru ON tru.user_id = tu.id AND tru.room_id = #{roomId}
+        </if>
         <where>
             <if test='excludeOwnYn != null and excludeOwnYn == "Y"'>
-                AND id != #{userId}
+                AND tu.id != #{userId}
             </if>
             <if test="name != null">
-                AND name like  '%' || #{name} || '%'
+                AND tu.name like  '%' || #{name} || '%'
+            </if>
+            <if test="roomId != null">
+                <choose>
+                    <when test='excludeExitingUserYn != null and excludeExitingUserYn == "Y"'>
+                        AND tru.id IS NULL
+                    </when>
+                    <otherwise>
+                        AND tru.id IS NOT NULL
+                    </otherwise>
+                </choose>
             </if>
         </where>
     </select>

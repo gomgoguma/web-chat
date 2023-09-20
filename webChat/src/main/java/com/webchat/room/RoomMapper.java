@@ -34,4 +34,6 @@ public interface RoomMapper {
     String getInvitedUsername(@Param("userIdList") List<Integer> userIdList, @Param("ownId") int ownId);
 
     String getRoomType(Integer roomId);
+
+    Integer getExistingRoom(List<Integer> userIdList);
 }

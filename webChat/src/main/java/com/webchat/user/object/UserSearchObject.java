@@ -9,4 +9,6 @@ public class UserSearchObject {
     private String excludeOwnYn;
     private Integer userId;
     private String name;
+    private Integer roomId;
+    private String excludeExitingUserYn;
 }

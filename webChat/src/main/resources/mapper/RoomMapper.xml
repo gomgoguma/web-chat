@@ -162,4 +162,17 @@
         FROM tb_room
         WHERE id = #{roomId}
     </select>
+
+    <select id="getExistingRoom" parameterType="java.util.List" resultType="int">
+        SELECT tr.id
+        FROM tb_room tr
+        JOIN tb_room_user tru ON tru.room_id = tr.id
+        WHERE tr.room_type = 'P'
+          AND tru.user_id IN
+            <foreach collection="list" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        GROUP BY tr.id
+        HAVING count(1) = 2
+    </select>
 </mapper>
