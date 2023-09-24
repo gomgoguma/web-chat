@@ -139,6 +139,7 @@ public class RoomService {
     public List<Msg> getRecentMsgForRooms(List<Integer> roomIds) {
         Aggregation aggregation = Aggregation.newAggregation(
             Aggregation.match(Criteria.where("roomId").in(roomIds)),
+            Aggregation.match(Criteria.where("type").is("chat")),
             Aggregation.sort(Sort.Direction.DESC, "dtm"),
             Aggregation.group("roomId")
                     .first("msg").as("msg")

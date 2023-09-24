@@ -25,9 +25,6 @@ public class MessageListener {
             groupId = KafkaConstant.GROUP_ID
     )
     public void listen(Msg msg) {
-        //log.info("sending via kafka listener..");
-        //template.convertAndSend("/topic/group/"+msg.getRoomId(), msg);
-
         List<Integer> userIds = roomMapper.getRoomUserList(msg.getRoomId());
         for(Integer userId : userIds) {
             template.convertAndSend("/topic/user/"+userId, msg);
